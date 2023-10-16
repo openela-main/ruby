@@ -1,0 +1,73 @@
+--- ruby-3.0.4/spec/ruby/library/socket/socket/bind_spec.rb	2022-04-12 07:48:55.000000000 -0400
++++ b/spec/ruby/library/socket/socket/bind_spec.rb	2022-09-22 16:31:17.443036043 -0400
+@@ -31,14 +31,14 @@
+     -> { @sock.bind(sockaddr1) }.should raise_error(Errno::EADDRNOTAVAIL)
+   end
+ 
+-  platform_is_not :windows, :cygwin do
+-    as_user do
+-      it "raises Errno::EACCES when the current user does not have permission to bind" do
+-        sockaddr1 = Socket.pack_sockaddr_in(1, "127.0.0.1")
+-        -> { @sock.bind(sockaddr1) }.should raise_error(Errno::EACCES)
+-      end
+-    end
+-  end
++  # platform_is_not :windows, :cygwin do
++  #   as_user do
++  #     it "raises Errno::EACCES when the current user does not have permission to bind" do
++  #       sockaddr1 = Socket.pack_sockaddr_in(1, "127.0.0.1")
++  #       -> { @sock.bind(sockaddr1) }.should raise_error(Errno::EACCES)
++  #     end
++  #   end
++  # end
+ end
+ 
+ describe "Socket#bind on SOCK_STREAM socket" do
+@@ -72,14 +72,14 @@
+     -> { @sock.bind(sockaddr1) }.should raise_error(Errno::EADDRNOTAVAIL)
+   end
+ 
+-  platform_is_not :windows, :cygwin do
+-    as_user do
+-      it "raises Errno::EACCES when the current user does not have permission to bind" do
+-        sockaddr1 = Socket.pack_sockaddr_in(1, "127.0.0.1")
+-        -> { @sock.bind(sockaddr1) }.should raise_error(Errno::EACCES)
+-      end
+-    end
+-  end
++  # platform_is_not :windows, :cygwin do
++  #   as_user do
++  #     it "raises Errno::EACCES when the current user does not have permission to bind" do
++  #       sockaddr1 = Socket.pack_sockaddr_in(1, "127.0.0.1")
++  #       -> { @sock.bind(sockaddr1) }.should raise_error(Errno::EACCES)
++  #     end
++  #   end
++  # end
+ end
+ 
+ describe 'Socket#bind' do
+@@ -111,15 +111,15 @@
+         -> { @socket.bind(sockaddr1) }.should raise_error(Errno::EADDRNOTAVAIL)
+       end
+ 
+-      platform_is_not :windows do
+-        as_user do
+-          it 'raises Errno::EACCES when the user is not allowed to bind to the port' do
+-            sockaddr1 = Socket.pack_sockaddr_in(1, ip_address)
+-
+-            -> { @socket.bind(sockaddr1) }.should raise_error(Errno::EACCES)
+-          end
+-       end
+-      end
++      # platform_is_not :windows do
++      #   as_user do
++      #     it 'raises Errno::EACCES when the user is not allowed to bind to the port' do
++      #       sockaddr1 = Socket.pack_sockaddr_in(1, ip_address)
++      #
++      #       -> { @socket.bind(sockaddr1) }.should raise_error(Errno::EACCES)
++      #     end
++      #  end
++      # end
+     end
+ 
+     describe 'using an Addrinfo' do
