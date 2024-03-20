@@ -1,6 +1,6 @@
 %global major_version 3
 %global minor_version 1
-%global teeny_version 2
+%global teeny_version 4
 %global major_minor_version %{major_version}.%{minor_version}
 
 %global ruby_version %{major_minor_version}.%{teeny_version}
@@ -22,7 +22,7 @@
 %endif
 
 
-%global release 141
+%global release 142
 %{!?release_string:%define release_string %{?development_release:0.}%{release}%{?development_release:.%{development_release}}%{?dist}}
 
 # The RubyGems library has to stay out of Ruby directory tree, since the
@@ -30,20 +30,22 @@
 %global rubygems_dir %{_datadir}/rubygems
 
 # Bundled libraries versions
-%global rubygems_version 3.3.7
+%global rubygems_version 3.3.26
 %global rubygems_molinillo_version 0.7.0
+%global rubygems_optparse_version 0.2.0
+%global rubygems_tsort_version 0.1.0
 
 # Default gems.
-%global bundler_version 2.3.7
+%global bundler_version 2.3.26
 %global bundler_connection_pool_version 2.3.0
 %global bundler_fileutils_version 1.4.1
-%global bundler_molinillo_version 0.7.0
+%global bundler_molinillo_version 0.8.0
 %global bundler_net_http_persistent_version 4.0.0
 %global bundler_thor_version 1.2.1
 %global bundler_tmpdir_version 0.1.0
 # TODO: Check the version if/when available in library.
 %global bundler_tsort_version 0.1.1
-%global bundler_uri_version 0.10.1
+%global bundler_uri_version 0.10.3
 
 %global bigdecimal_version 3.1.1
 %global did_you_mean_version 1.6.1
@@ -51,8 +53,8 @@
 %global io_console_version 0.5.11
 %global irb_version 1.4.1
 %global json_version 2.6.1
-%global openssl_version 3.0.0
-%global psych_version 4.0.3
+%global openssl_version 3.0.1
+%global psych_version 4.0.4
 %global racc_version 1.6.0
 %global rdoc_version 6.4.0
 %global stringio_version 3.0.1
@@ -70,9 +72,9 @@
 %global net_smtp_version 0.3.1
 %global matrix_version 0.4.2
 %global prime_version 0.1.2
-%global rbs_version 2.1.0
-%global typeprof_version 0.21.2
-%global debug_version 1.4.0
+%global rbs_version 2.7.0
+%global typeprof_version 0.21.3
+%global debug_version 1.6.3
 
 %global tapset_libdir %(echo %{_libdir} | sed 's/64//')*
 
@@ -91,10 +93,6 @@
 %if 0%{?fedora}
 %bcond_without hardening_test
 %endif
-
-# LTO appears to cause some issue to SEGV handler.
-# https://bugs.ruby-lang.org/issues/17052
-%define _lto_cflags %{nil}
 
 Summary: An interpreter of object-oriented scripting language
 Name: ruby
@@ -143,8 +141,6 @@ Patch3: ruby-2.1.0-always-use-i386.patch
 # Allows to install RubyGems into custom directory, outside of Ruby's tree.
 # http://bugs.ruby-lang.org/issues/5617
 Patch4: ruby-2.1.0-custom-rubygems-location.patch
-# Make mkmf verbose by default
-Patch5: ruby-1.9.3-mkmf-verbose.patch
 # The ABRT hook used to be initialized by preludes via following patches:
 # https://bugs.ruby-lang.org/issues/8566
 # https://bugs.ruby-lang.org/issues/15306
@@ -163,14 +159,62 @@ Patch7: ruby-3.1.0-Don-t-query-RubyVM-FrozenCore-for-class-path.patch
 # Avoid possible timeout errors in TestBugReporter#test_bug_reporter_add.
 # https://bugs.ruby-lang.org/issues/16492
 Patch19: ruby-2.7.1-Timeout-the-test_bug_reporter_add-witout-raising-err.patch
-# Fix a test for `bin/bundle update --bundler` in `make test-bundler`.
-# https://bugs.ruby-lang.org/issues/18643
-# https://github.com/rubygems/rubygems/commit/bfa2f72cfa3bfde34049d26dcb24976316074ad7
-Patch20: ruby-bundler-2.4.0-bundle-update-bundler-test-in-ruby.patch
-# Workaround gem binary extensions build and installation issues.
-# https://bugs.ruby-lang.org/issues/18373
-# https://github.com/ruby/ruby/pull/5774
-Patch21: ruby-3.2.0-Build-extension-libraries-in-bundled-gems.patch
+# If GC compaction is not supported on platform, define the
+# corresponding GC methods as not implemented.
+# https://bugs.ruby-lang.org/issues/18779
+# https://github.com/ruby/ruby/pull/5934
+Patch22: ruby-3.2.0-define-unsupported-gc-compaction-methods-as-rb_f_notimplement.patch
+# To regenerate the patch you need to have ruby, autoconf, xz, tar and make installed:
+# tar -Jxvf ./ruby-3.1.4.tar.xz
+# git clone https://github.com/ruby/ruby.git
+# cd ruby && git checkout v3_1_4
+# patch -p1 < ../ruby-3.2.0-define-unsupported-gc-compaction-methods-as-rb_f_notimplement.patch
+# ./autogen.sh && ./configure
+# make gc.rbinc miniprelude.c
+# cd ..
+# diff -u {ruby-3.1.4,ruby}/gc.rbinc > ruby-3.2.0-define-unsupported-gc-compaction-methods_generated-files.patch
+# diff -u {ruby-3.1.4,ruby}/miniprelude.c >> ruby-3.2.0-define-unsupported-gc-compaction-methods_generated-files.patch
+Patch23: ruby-3.2.0-define-unsupported-gc-compaction-methods_generated-files.patch
+# Define the GC compaction support macro at run time.
+# https://bugs.ruby-lang.org/issues/18829
+# https://github.com/ruby/ruby/pull/6019
+# https://github.com/ruby/ruby/commit/2c190863239bee3f54cfb74b16bb6ea4cae6ed20
+Patch24: ruby-3.2.0-Detect-compaction-support-during-runtime.patch
+# Drop hard dependency on RDoc in IRB.
+# https://github.com/ruby/irb/pull/393
+Patch27: ruby-irb-1.4.1-drop-rdoc-hard-dep.patch
+# Set soft dependency on RDoc in input-method.rb in IRB.
+# https://github.com/ruby/irb/pull/395
+Patch28: ruby-irb-1.4.1-set-rdoc-soft-dep.patch
+# A Weakmap test uses compaction without safeguarding if the method is defined.
+# This test should be skipped if compaction is not supported on the platform.
+# https://github.com/ruby/ruby/commit/bffadcd6d46ccfccade79ce0efb60ced8eac4483
+# https://bugs.ruby-lang.org/issues/19529#note-7
+Patch29: ruby-3.1.4-Skip-test_compaction_bug_19529-if-compaction-unsupported.patch
+# Bundler does not correctly resolve archful gems in 2.3.26.
+# Example of such an issue
+# https://github.com/sclorg/s2i-ruby-container/issues/469
+# The patch is an amalgamation of the following:
+# https://github.com/rubygems/rubygems/pull/6225
+# https://github.com/rubygems/rubygems/commit/7b64c64262a7a980c0eb23b96ea56cf72ea06e89
+# Backport requested in
+# https://bugs.ruby-lang.org/issues/19576
+Patch30: rubygem-bundler-2.3.26-Provide-fix-for-bundler-Gemfile-resolving-regression.patch
+Patch31: rubygem-bundler-2.3.26-Tests-from-bundler-PR-6225.patch
+# Continuation of the bundler fix for s2i-ruby-container #469 issue.
+# Additionally to already described problem, when bundler is run with
+# --deployment it again resolves to the incorrect gem from Rubygems repository.
+# Fix and test from:
+# https://github.com/rubygems/rubygems/pull/6261
+# https://bugs.ruby-lang.org/issues/19576#note-4
+Patch32: rubygem-bundler-2.3.26-Backport-Fix-another-issue-of-Bundler-not-falling-back.patch
+Patch33: rubygem-bundler-2.3.26-Backport-Fix-another-issue-of-Bundler-not-falling-back-test.patch
+# Renew expired test certificates.
+# https://github.com/ruby/net-http/pull/169
+Patch34: ruby-3.4.0-ruby-net-http-Renew-test-certificates.patch
+# Update URI to 0.12.2 and Bundler::URI to 0.10.3 to mitigate CVE-2023-36617.
+# https://github.com/ruby/ruby/pull/7996
+Patch35: ruby-3.1.5-CVE-2023-36617-for-Ruby-3.1.patch
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Suggests: rubypick
@@ -313,6 +357,7 @@ Requires:   ruby(rubygems) >= %{rubygems_version}
 # ruby-default-gems is required to run irb.
 # https://bugs.ruby-lang.org/issues/16951
 Requires:   ruby-default-gems >= %{ruby_version}
+Recommends: rubygem(rdoc) >= %{rdoc_version}
 Provides:   irb = %{version}-%{release}
 Provides:   rubygem(irb) = %{version}-%{release}
 # Obsoleted by Ruby 2.6 in F30 timeframe.
@@ -452,6 +497,8 @@ many machines, systematically and repeatably.
 %package bundled-gems
 Summary:    Bundled gems which are part of Ruby StdLib
 Requires:   ruby(rubygems) >= %{rubygems_version}
+# Runtime dependency of rubygem(debug).
+Recommends: rubygem(irb) >= %{irb_version}
 Provides:   rubygem(net-ftp) = %{net_ftp_version}
 Provides:   rubygem(net-imap) = %{net_imap_version}
 Provides:   rubygem(net-pop) = %{net_pop_version}
@@ -621,18 +668,24 @@ rm -rf ext/fiddle/libffi*
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
-%patch5 -p1
 %patch6 -p1
 %patch7 -p1
 %patch19 -p1
-%patch20 -p1
+%patch22 -p1
+%patch23 -p1
+%patch24 -p1
+%patch27 -p1
+%patch28 -p1
+%patch29 -p1
+%patch30 -p2
+%patch32 -p2
+%patch34 -p1
+%patch35 -p1
 
-# Once the upstream tarball contains the files on the right place, this code
-# won't be necessary. This should happen at the same moment when the patch21
-# is not needed anymore.
-mkdir .bundle/specifications
-find .bundle/gems -name '*-[0-9]*.gemspec' -exec cp -t .bundle/specifications/ {} +
-%patch21 -p1
+pushd spec/bundler
+%patch31 -p3
+%patch33 -p3
+popd
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -656,16 +709,20 @@ autoconf
         --with-ruby-pc='%{name}.pc' \
         --with-compress-debug-sections=no \
         --disable-rpath \
+        --enable-mkmf-verbose \
         --enable-shared \
         --with-ruby-version='' \
         --enable-multiarch \
 
-# Q= makes the build output more verbose and allows to check Fedora
-# compiler options.
-%make_build COPY="cp -p" Q=
+# V=1 in %%make_build outputs the compiler options more verbosely.
+# Set the V=1 VERBOSE=1. RPM 4.14 or earlier versions do not have the options.
+# https://github.com/rpm-software-management/rpm/commit/8655493bdfd6b76271893b148033f2ff580d2d39
+# https://bugs.ruby-lang.org/issues/18756
+%make_build COPY="cp -p" V=1 VERBOSE=1
 
 %install
 rm -rf %{buildroot}
+
 %make_install
 
 # TODO: Regenerate RBS parser in lib/rbs/parser.rb
@@ -848,6 +905,21 @@ checksec --file=libruby.so.%{ruby_version} | \
   puts Gem::Resolver::Molinillo::VERSION\\\"\" | tail -1`" \
   == '%{rubygems_molinillo_version}' ]
 
+# OptParse.
+make runruby TESTRUN_SCRIPT="-e \" \
+  module Gem; end; \
+  require 'rubygems/optparse/lib/optparse'; \
+  puts '%%{rubygems_optparse_version}: %{rubygems_optparse_version}'; \
+  puts %Q[Gem::OptionParser::Version: #{Gem::OptionParser::Version}]; \
+  exit 1 if Gem::OptionParser::Version != '%{rubygems_optparse_version}'; \
+\""
+
+# tsort
+# TODO: Provide some real version test if version is available.
+make runruby TESTRUN_SCRIPT="-e \" \
+  module Gem; end;\
+  require 'rubygems/tsort/lib/tsort'\""
+
 # Check Bundler bundled dependencies versions.
 
 # connection_pool.
@@ -919,20 +991,32 @@ MSPECOPTS=""
 # Avoid `hostname' dependency.
 %{!?with_hostname:MSPECOPTS="-P 'Socket.gethostname returns the host name'"}
 
-# https://bugs.ruby-lang.org/issues/18380
-DISABLE_TESTS="$DISABLE_TESTS -n !/TestAddressResolve#test_socket_getnameinfo_domain_blocking/"
-
-%ifarch armv7hl
-# TestReadline#test_interrupt_in_other_thread fails on 32 bit arches according
-# to upstream, but the test is disabled just on Travis, not in test suite.
-# https://bugs.ruby-lang.org/issues/18393
-DISABLE_TESTS="$DISABLE_TESTS -n !/TestReadline#test_interrupt_in_other_thread/"
-%endif
-
 # Several test broken by libffi-3.4.2. There should be fix in libffi, once
 # other components are fixed.
 # https://bugzilla.redhat.com/show_bug.cgi?id=2040380
 mv test/fiddle/test_import.rb{,.disable}
+mv test/fiddle/test_closure.rb{,.disable}
+DISABLE_TESTS="$DISABLE_TESTS -n !/Fiddle::TestFunc#test_qsort1/"
+DISABLE_TESTS="$DISABLE_TESTS -n !/Fiddle::TestFunction#test_argument_count/"
+
+# Provide workaround for s390x zlib errors in tests on RHEL 8.
+# The library works, but there seems to be chip acceleration used
+# resulting in failing asserts against hardcoded values that were
+# created for a different algorithm than is the default on that platform.
+# Fix taken from:
+# https://github.com/ruby/zlib/commit/280a1b5905d752af25e9f09e6511388cb4260eb2
+%ifarch s390x
+  # Force chip acceleration off.
+  # https://www.ibm.com/docs/en/linux-on-systems?topic=o-applications-2
+  export DFLTCC=0
+%endif
+
+# Some infra allows DNS resolution but then does not allow
+# connection to proceed, let's ignore it altogether for now.
+# Our expectation is that there is no network connectivity outside
+# available loopback interface. That is not the reality currently.
+# https://issues.redhat.com/browse/CS-1959
+DISABLE_TESTS="$DISABLE_TESTS -n !/TestBundledCA/"
 
 # Give an option to increase the timeout in tests.
 # https://bugs.ruby-lang.org/issues/16921
@@ -1190,8 +1274,8 @@ mv test/fiddle/test_import.rb{,.disable}
 %{gem_dir}/specifications/default/abbrev-0.1.0.gemspec
 %{gem_dir}/specifications/default/base64-0.1.1.gemspec
 %{gem_dir}/specifications/default/benchmark-0.2.0.gemspec
-%{gem_dir}/specifications/default/cgi-0.3.1.gemspec
-%{gem_dir}/specifications/default/csv-3.2.2.gemspec
+%{gem_dir}/specifications/default/cgi-0.3.6.gemspec
+%{gem_dir}/specifications/default/csv-3.2.5.gemspec
 %{gem_dir}/specifications/default/date-3.2.2.gemspec
 %{gem_dir}/specifications/default/delegate-0.2.0.gemspec
 %{gem_dir}/specifications/default/did_you_mean-%{did_you_mean_version}.gemspec
@@ -1212,7 +1296,7 @@ mv test/fiddle/test_import.rb{,.disable}
 %{gem_dir}/specifications/default/ipaddr-1.2.4.gemspec
 %{gem_dir}/specifications/default/logger-1.5.0.gemspec
 %{gem_dir}/specifications/default/mutex_m-0.1.1.gemspec
-%{gem_dir}/specifications/default/net-http-0.2.0.gemspec
+%{gem_dir}/specifications/default/net-http-0.3.0.gemspec
 %{gem_dir}/specifications/default/net-protocol-0.1.2.gemspec
 %{gem_dir}/specifications/default/nkf-0.1.1.gemspec
 %{gem_dir}/specifications/default/observer-0.1.1.gemspec
@@ -1228,12 +1312,12 @@ mv test/fiddle/test_import.rb{,.disable}
 %{gem_dir}/specifications/default/racc-%{racc_version}.gemspec
 %{gem_dir}/specifications/default/readline-0.0.3.gemspec
 %{gem_dir}/specifications/default/readline-ext-0.1.4.gemspec
-%{gem_dir}/specifications/default/reline-0.3.0.gemspec
+%{gem_dir}/specifications/default/reline-0.3.1.gemspec
 %{gem_dir}/specifications/default/resolv-0.2.1.gemspec
 %{gem_dir}/specifications/default/resolv-replace-0.1.0.gemspec
 %{gem_dir}/specifications/default/rinda-0.1.1.gemspec
 %{gem_dir}/specifications/default/ruby2_keywords-0.0.5.gemspec
-%{gem_dir}/specifications/default/securerandom-0.1.1.gemspec
+%{gem_dir}/specifications/default/securerandom-0.2.0.gemspec
 %{gem_dir}/specifications/default/set-1.0.2.gemspec
 %{gem_dir}/specifications/default/shellwords-0.1.0.gemspec
 %{gem_dir}/specifications/default/singleton-0.1.1.gemspec
@@ -1241,12 +1325,12 @@ mv test/fiddle/test_import.rb{,.disable}
 %{gem_dir}/specifications/default/strscan-3.0.1.gemspec
 %{gem_dir}/specifications/default/syslog-0.1.0.gemspec
 %{gem_dir}/specifications/default/tempfile-0.1.2.gemspec
-%{gem_dir}/specifications/default/time-0.2.0.gemspec
+%{gem_dir}/specifications/default/time-0.2.2.gemspec
 %{gem_dir}/specifications/default/timeout-0.2.0.gemspec
 %{gem_dir}/specifications/default/tmpdir-0.1.2.gemspec
 %{gem_dir}/specifications/default/tsort-0.1.0.gemspec
 %{gem_dir}/specifications/default/un-0.2.0.gemspec
-%{gem_dir}/specifications/default/uri-0.11.0.gemspec
+%{gem_dir}/specifications/default/uri-0.12.2.gemspec
 %{gem_dir}/specifications/default/weakref-0.1.1.gemspec
 #%%{gem_dir}/specifications/default/win32ole-1.8.8.gemspec
 %{gem_dir}/specifications/default/yaml-0.2.0.gemspec
@@ -1332,7 +1416,6 @@ mv test/fiddle/test_import.rb{,.disable}
 %doc %{gem_dir}/gems/debug-%{debug_version}/README.md
 %{gem_dir}/gems/debug-%{debug_version}/Rakefile
 %doc %{gem_dir}/gems/debug-%{debug_version}/TODO.md
-%{gem_dir}/gems/debug-%{debug_version}/bin
 %{gem_dir}/gems/debug-%{debug_version}/exe
 %{gem_dir}/gems/debug-%{debug_version}/lib
 %{gem_dir}/gems/debug-%{debug_version}/misc
@@ -1423,7 +1506,7 @@ mv test/fiddle/test_import.rb{,.disable}
 %license %{gem_dir}/gems/rbs-%{rbs_version}/BSDL
 %doc %{gem_dir}/gems/rbs-%{rbs_version}/CHANGELOG.md
 %license %{gem_dir}/gems/rbs-%{rbs_version}/COPYING
-%{gem_dir}/gems/rbs-%{rbs_version}/Gemfile
+%{gem_dir}/gems/rbs-%{rbs_version}/Gemfile*
 %doc %{gem_dir}/gems/rbs-%{rbs_version}/README.md
 %{gem_dir}/gems/rbs-%{rbs_version}/Rakefile
 %{gem_dir}/gems/rbs-%{rbs_version}/Steepfile
@@ -1480,7 +1563,6 @@ mv test/fiddle/test_import.rb{,.disable}
 %{gem_dir}/gems/typeprof-%{typeprof_version}/lib
 %doc %{gem_dir}/gems/typeprof-%{typeprof_version}/tools
 %exclude %{gem_dir}/gems/typeprof-%{typeprof_version}/typeprof-lsp
-%exclude %{gem_dir}/gems/typeprof-%{typeprof_version}/vscode
 %{gem_dir}/specifications/typeprof-%{typeprof_version}.gemspec
 %doc %{gem_dir}/gems/typeprof-%{typeprof_version}/Gemfile*
 %doc %{gem_dir}/gems/typeprof-%{typeprof_version}/README.md
@@ -1488,6 +1570,19 @@ mv test/fiddle/test_import.rb{,.disable}
 
 
 %changelog
+* Fri Mar 01 2024 Jarek Prokop <jprokop@redhat.com> - 3.1.4-142
+- Upgrade to Ruby 3.1.4.
+  Resolves: RHEL-28565
+- Fix HTTP response splitting in CGI.
+  Resolves: RHEL-28564
+- Fix ReDos vulnerability in URI.
+  Resolves: RHEL-28567
+  Resolves: RHEL-28576
+- Fix ReDos vulnerability in Time.
+  Resolves: RHEL-28566
+- Make RDoc soft dependency in IRB.
+  Resolves: RHEL-28569
+
 * Thu Apr 21 2022 Jarek Prokop <jprokop@redhat.com> - 3.1.2-141
 - Upgrade to Ruby 3.1.2.
   Resolves: rhbz#2063772
