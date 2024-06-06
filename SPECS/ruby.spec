@@ -1,6 +1,6 @@
 %global major_version 3
 %global minor_version 3
-%global teeny_version 0
+%global teeny_version 1
 %global major_minor_version %{major_version}.%{minor_version}
 
 %global ruby_version %{major_minor_version}.%{teeny_version}
@@ -27,7 +27,7 @@
 %global rubygems_dir %{_datadir}/rubygems
 
 # Bundled libraries versions
-%global rubygems_version 3.5.3
+%global rubygems_version 3.5.9
 %global rubygems_molinillo_version 0.8.0
 %global rubygems_net_http_version 0.4.0
 %global rubygems_net_protocol_version 0.2.2
@@ -35,9 +35,10 @@
 %global rubygems_resolv_version 0.3.0
 %global rubygems_timeout_version 0.4.1
 %global rubygems_tsort_version 0.2.0
+%global rubygems_uri_version 0.13.0
 
 # Default gems.
-%global bundler_version 2.5.3
+%global bundler_version 2.5.9
 %global bundler_connection_pool_version 2.4.1
 %global bundler_fileutils_version 1.7.2
 %global bundler_net_http_persistent_version 4.0.2
@@ -71,7 +72,7 @@
 %global ipaddr_version 1.2.6
 %global logger_version 1.6.0
 %global mutex_m_version 0.2.0
-%global net_http_version 0.4.0
+%global net_http_version 0.4.1
 %global net_protocol_version 0.2.2
 %global nkf_version 0.1.3
 %global observer_version 0.1.2
@@ -117,14 +118,14 @@
 %global irb_version 1.11.0
 %global json_version 2.7.1
 %global psych_version 5.1.2
-%global rdoc_version 6.6.2
+%global rdoc_version 6.6.3.1
 
 # Bundled gems.
 %global debug_version 1.9.1
-%global net_ftp_version 0.3.3
-%global net_imap_version 0.4.9
+%global net_ftp_version 0.3.4
+%global net_imap_version 0.4.9.1
 %global net_pop_version 0.1.2
-%global net_smtp_version 0.4.0
+%global net_smtp_version 0.4.0.1
 %global matrix_version 0.4.2
 %global minitest_version 5.20.0
 %global power_assert_version 2.0.3
@@ -136,6 +137,9 @@
 %global rss_version 0.3.0
 %global test_unit_version 3.6.1
 %global typeprof_version 0.21.9
+
+# Bundled nkf version
+%global bundled_nkf_version 2.1.5
 
 %global tapset_libdir %(echo %{_libdir} | sed 's/64//')*
 
@@ -163,14 +167,49 @@
 Summary: An interpreter of object-oriented scripting language
 Name: ruby
 Version: %{ruby_version}%{?development_release}
-Release: 1%{?dist}
-# BSD-3-Clause: missing/{crypt,mt19937,setproctitle}.c
+Release: 2%{?dist}
+# Licenses, which are likely not included in binary RPMs:
+# Apache-2.0:
+#   benchmark/gc/redblack.rb
+#     But this file might be BSD-2-Clause licensed after all:
+#     https://bugs.ruby-lang.org/issues/20420
+# GPL-1.0-or-later: ext/win32/lib/win32/sspi.rb
+# GPL-1.0-or-later OR Artistic-1.0-Perl: win32/win32.c, include/ruby/win32.h,
+#   ext/win32ole/win32ole.c
+#
+# !!! Problematic licenses:
+# LicenseRef-scancode-unicode-mappings: ext/json/generator/generator.c
+#   https://bugs.ruby-lang.org/issues/11844#note-19
+#   https://github.com/flori/json/issues/277
+#   https://github.com/flori/json/pull/567
+#
+# Licenses under review:
+#   .bundle/gems/net-imap-0.4.9/LICENSE.txt
+#   https://gitlab.com/fedora/legal/fedora-license-data/-/issues/506
+#
+# Approved license without SPDX identifier:
+#   ext/pty/pty.c
+#   https://gitlab.com/fedora/legal/fedora-license-data/-/issues/503
+#
+# BSD-3-Clause: missing/{crypt,mt19937,setproctitle}.c, addr2line.c:2652
+# CC0: ccan/{build_assert/build_assert.h,check_type/check_type.h,
+#   container_of/container_of.h,str/str.h}
+#   Allowed based on 'grandfather clause':
+#   https://gitlab.com/fedora/legal/fedora-license-data/-/blob/7d9720b2cfd8ccb98d1975312942d99588a0da7c/data/CC0-1.0.toml#L11-14
+#   https://gitlab.com/fedora/legal/fedora-license-data/-/issues/499
+# dtoa: missing/dtoa.c
+# GPL-3.0-or-later WITH Bison-exception-2.2: parse.{c,h}, ext/ripper/ripper.c
+# HPND-Markus-Kuhn: missing/langinfo.c
 # ISC: missing/strl{cat,cpy}.c
-# Public Domain for example for: include/ruby/st.h, strftime.c, missing/*, ...
-# MIT and CCO: ccan/*
-# zlib: ext/digest/md5/md5.*, ext/nkf/nkf-utf8/nkf.c
+# LicenseRef-Fedora-Public-Domain: include/ruby/st.h, strftime.c, missing/*, ...
+#   https://gitlab.com/fedora/legal/fedora-license-data/-/merge_requests/145
+# MIT: ccan/list/list.h
+# Ruby OR BSD-2-Clause OR GPL-1.0-or-later: lib/net/protocol.rb
 # Unicode-DFS-2015: some of enc/trans/**/*.src
-License: (Ruby OR BSD-2-Clause) AND BSD-3-Clause AND ISC AND Public Domain AND MIT and CC0 AND zlib AND Unicode-DFS-2015
+#   There is also license review ticket here:
+#   https://gitlab.com/fedora/legal/fedora-license-data/-/issues/500
+# zlib: ext/digest/md5/md5.*, ext/nkf/nkf-utf8/nkf.c
+License: (Ruby OR BSD-2-Clause) AND (Ruby OR BSD-2-Clause OR GPL-1.0-or-later) AND BSD-3-Clause AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND ISC AND LicenseRef-Fedora-Public-Domain AND MIT AND CC0 AND zlib AND Unicode-DFS-2015 AND HPND-Markus-Kuhn
 URL: https://www.ruby-lang.org/
 Source0: https://cache.ruby-lang.org/pub/%{name}/%{major_minor_version}/%{ruby_archive}.tar.xz
 Source1: operating_system.rb
@@ -231,26 +270,13 @@ Patch9: ruby-3.3.0-Disable-syntax-suggest-test-case.patch
 # Revert patches causing segfaults in alexandria package.
 # https://bugs.ruby-lang.org/issues/20079
 Patch10: ruby-3.3.0-Revert-Optimize-allocations-in-Hash-compare_by_identity.patch
-# Fix net-http test errors due to expired certificate
-# https://github.com/ruby/ruby/commit/d3933fc753187a055a4904af82f5f3794c88c416
-# https://bugs.ruby-lang.org/issues/20106
-Patch11: ruby-3.4.0-ruby-net-http-Renew-test-certificates.patch
 # Armv8.3+ capable CPUs might segfault with incorrect compilation options.
 # See related upstream report: https://bugs.ruby-lang.org/issues/20085
 # https://bugs.ruby-lang.org/issues/20154
 Patch12: ruby-3.4.0-fix-branch-protection-compilation-for-arm.patch
-# Revert adding AI_ADDRCONFIG flag to getaddrinfo(3) calls.
-# It is causing problems when network is in certain, valid, configuration.
-# When loopback interface is IPv6 capable, but no regular network interface
-# is IPv6 capable, in some situations (such as in TestNetHTTPLocalBind)
-# this might result in creating IPv4 socket and then binding it
-# to IPv6 family connection.
-# That is incorrect behavior and such operation will result in
-# Errno::EAFNOSUPPORT exception.
-# The point of the upstream change is to workaround a glibc bug
-# that is not present for us. Therefore we can safely revert the change.
-# https://bugs.ruby-lang.org/issues/20208
-Patch13: ruby-3.4.0-Revert-Set-AI_ADDRCONFIG-when-making-getaddrinfo.patch
+# Fix build issue on i686 due to "incompatible pointer type" error.
+# https://bugs.ruby-lang.org/issues/20447
+Patch13: ruby-3.4.0-Fix-pointer-incompatiblity.patch
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 %{?with_rubypick:Suggests: rubypick}
@@ -328,6 +354,11 @@ Provides: bundled(ccan-check_type)
 Provides: bundled(ccan-container_of)
 Provides: bundled(ccan-list)
 
+# https://github.com/nurse/nkf
+# Please note that nkf going to be promoted to bundled gem in Ruby 3.4:
+# https://github.com/ruby/ruby/commit/2e3a7f70ae71650be6ea38a483f66ce17ca5eb1d
+Provides: bundled(nkf) = %{bundled_nkf_version}
+
 # StdLib default gems.
 Provides: bundled(rubygem-did_you_mean) = %{did_you_mean_version}
 Provides: bundled(rubygem-openssl) = %{openssl_version}
@@ -350,7 +381,8 @@ Version:    %{rubygems_version}
 #   lib/rubygems/timeout/
 #   lib/rubygems/tsort/
 # MIT: lib/rubygems/resolver/molinillo
-License:    (Ruby OR MIT) AND BSD-2-Clause AND (BSD-2-Clause OR Ruby) AND MIT
+# Ruby OR BSD-2-Clause OR GPL-1.0-or-later: lib/net/protocol.rb
+License:    (Ruby OR MIT) AND BSD-2-Clause AND (BSD-2-Clause OR Ruby) AND (Ruby OR BSD-2-Clause OR GPL-1.0-or-later) AND MIT
 Requires:   ruby(release)
 Recommends: rubygem(bundler) >= %{bundler_version}
 Recommends: rubygem(rdoc) >= %{rdoc_version}
@@ -461,7 +493,8 @@ This package contains documentation for %{name}.
 %package -n rubygem-bigdecimal
 Summary:    BigDecimal provides arbitrary-precision floating point decimal arithmetic
 Version:    %{bigdecimal_version}
-License:    Ruby OR BSD-2-Clause
+# dtoa: missing/dtoa.c
+License:    (Ruby OR BSD-2-Clause) AND dtoa
 Provides:   bundled(rubygem-bigdecimal) = %{bigdecimal_version}
 
 %description -n rubygem-bigdecimal
@@ -716,7 +749,6 @@ analysis result in RBS format, a standard type description format for Ruby
 %patch -P 6 -p1
 %patch -P 9 -p1
 %patch -P 10 -p1
-%patch -P 11 -p1
 %patch -P 12 -p1
 %patch -P 13 -p1
 
@@ -927,16 +959,16 @@ checksec --file=%{_vpath_builddir}/libruby.so.%{ruby_version} | \
 # Molinillo.
 make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
   module Gem; module Resolver; end; end; \
-  require 'rubygems/resolver/molinillo/lib/molinillo/gem_metadata'; \
+  require 'rubygems/vendor/molinillo/lib/molinillo/gem_metadata'; \
   puts '%%{rubygems_molinillo_version}: %{rubygems_molinillo_version}'; \
-  puts %Q[Gem::Resolver::Molinillo::VERSION: #{Gem::Resolver::Molinillo::VERSION}]; \
-  exit 1 if Gem::Resolver::Molinillo::VERSION != '%{rubygems_molinillo_version}'; \
+  puts %Q[Gem::Molinillo::VERSION: #{Gem::Molinillo::VERSION}]; \
+  exit 1 if Gem::Molinillo::VERSION != '%{rubygems_molinillo_version}'; \
 \""
 
 # Net::HTTP.
 make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
   module Gem; module Net; end; end; \
-  require 'rubygems/net-http/lib/net/http'; \
+  require 'rubygems/vendor/net-http/lib/net/http'; \
   puts '%%{rubygems_net_http_version}: %{rubygems_net_http_version}'; \
   puts %Q[Gem::Net::HTTP::VERSION: #{Gem::Net::HTTP::VERSION}]; \
   exit 1 if Gem::Net::HTTP::VERSION != '%{rubygems_net_http_version}'; \
@@ -945,7 +977,7 @@ make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
 # Net::Protocol.
 make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
   module Gem; module Net; end; end; \
-  require 'rubygems/net-protocol/lib/net/protocol'; \
+  require 'rubygems/vendor/net-protocol/lib/net/protocol'; \
   puts '%%{rubygems_net_protocol_version}: %{rubygems_net_protocol_version}'; \
   puts %Q[Gem::Net::Protocol::VERSION: #{Gem::Net::Protocol::VERSION}]; \
   exit 1 if Gem::Net::Protocol::VERSION != '%{rubygems_net_protocol_version}'; \
@@ -954,7 +986,7 @@ make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
 # OptParse.
 make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
   module Gem; end; \
-  require 'rubygems/optparse/lib/optparse'; \
+  require 'rubygems/vendor/optparse/lib/optparse'; \
   puts '%%{rubygems_optparse_version}: %{rubygems_optparse_version}'; \
   puts %Q[Gem::OptionParser::Version: #{Gem::OptionParser::Version}]; \
   exit 1 if Gem::OptionParser::Version != '%{rubygems_optparse_version}'; \
@@ -963,7 +995,7 @@ make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
 # Resolv.
 make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
   module Gem; end; \
-  require 'rubygems/resolv/lib/resolv'; \
+  require 'rubygems/vendor/resolv/lib/resolv'; \
   puts '%%{rubygems_resolv_version}: %{rubygems_resolv_version}'; \
   puts %Q[Gem::Resolv::VERSION: #{Gem::Resolv::VERSION}]; \
   exit 1 if Gem::Resolv::VERSION != '%{rubygems_resolv_version}'; \
@@ -972,7 +1004,7 @@ make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
 # Timeout.
 make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
   module Gem; end; \
-  require 'rubygems/timeout/lib/timeout'; \
+  require 'rubygems/vendor/timeout/lib/timeout'; \
   puts '%%{rubygems_timeout_version}: %{rubygems_timeout_version}'; \
   puts %Q[Gem::Timeout::VERSION: #{Gem::Timeout::VERSION}]; \
   exit 1 if Gem::Timeout::VERSION != '%{rubygems_timeout_version}'; \
@@ -981,10 +1013,19 @@ make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
 # TSort
 make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
   module Gem; end; \
-  require 'rubygems/tsort/lib/tsort'; \
+  require 'rubygems/vendor/tsort/lib/tsort'; \
   puts '%%{rubygems_tsort_version}: %{rubygems_tsort_version}'; \
   puts %Q[Gem::TSort::VERSION: #{Gem::TSort::VERSION}]; \
   exit 1 if Gem::TSort::VERSION != '%{rubygems_tsort_version}'; \
+\""
+
+# URI.
+make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
+  module Gem; end; \
+  require 'rubygems/vendor/uri/lib/uri/version'; \
+  puts '%%{rubygems_uri_version}: %{rubygems_uri_version}'; \
+  puts %Q[Gem::URI::VERSION: #{Gem::URI::VERSION}]; \
+  exit 1 if Gem::URI::VERSION != '%{rubygems_uri_version}'; \
 \""
 
 # Check Bundler bundled dependencies versions.
@@ -1051,6 +1092,16 @@ make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
   puts '%%{bundler_uri_version}: %{bundler_uri_version}'; \
   puts %Q[Bundler::URI::VERSION: #{Bundler::URI::VERSION}]; \
   exit 1 if Bundler::URI::VERSION != '%{bundler_uri_version}'; \
+\""
+
+# Check bundled libraries versions.
+
+# Nkf.
+make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
+  require 'nkf'; \
+  puts '%%{bundled_nkf_version}: %{bundled_nkf_version}'; \
+  puts %Q[NKF::NKF_VERSION: #{NKF::NKF_VERSION}]; \
+  exit 1 if NKF::NKF_VERSION != '%{bundled_nkf_version}'; \
 \""
 
 
@@ -1655,6 +1706,19 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 
 
 %changelog
+* Mon May 20 2024 Jarek Prokop <jprokop@redhat.com> - 3.3.1-2
+- Upgrade to Ruby 3.3.1.
+  Resolves: RHEL-37697
+- Fix buffer overread vulnerability in StringIO.
+  (CVE-2024-27280)
+  Resolves: RHEL-37699
+- Fix RCE vulnerability with .rdoc_options in RDoc.
+  (CVE-2024-27281)
+  Resolves: RHEL-37696
+- Fix Arbitrary memory address read vulnerability with Regex search.
+  (CVE-2024-27282)
+  Resolves: RHEL-37698
+
 * Wed Jan 17 2024 Jarek Prokop <jprokop@redhat.com> - 3.3.0-1
 - Upgrade to Ruby 3.3.0.
   Resolves: RHEL-17089
