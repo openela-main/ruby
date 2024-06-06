@@ -13,7 +13,7 @@ diff --git a/hash.c b/hash.c
 index 78e9d9a2d6..f6525ba4a5 100644
 --- a/hash.c
 +++ b/hash.c
-@@ -4377,16 +4377,13 @@ rb_hash_compare_by_id(VALUE hash)
+@@ -4385,16 +4385,13 @@ rb_hash_compare_by_id(VALUE hash)
      if (hash_iterating_p(hash)) {
          rb_raise(rb_eRuntimeError, "compare_by_identity during iteration");
      }
@@ -33,7 +33,7 @@ index 78e9d9a2d6..f6525ba4a5 100644
          // Slow path: Need to rehash the members of `self` into a new
          // `tmp` table using the new `identhash` compare/hash functions.
          tmp = hash_alloc(0);
-@@ -4394,10 +4391,8 @@ rb_hash_compare_by_id(VALUE hash)
+@@ -4402,10 +4399,8 @@ rb_hash_compare_by_id(VALUE hash)
          identtable = RHASH_ST_TABLE(tmp);
  
          rb_hash_foreach(hash, rb_hash_rehash_i, (VALUE)tmp);
@@ -60,7 +60,7 @@ diff --git a/hash.c b/hash.c
 index f6525ba4a5..cf83675c70 100644
 --- a/hash.c
 +++ b/hash.c
-@@ -4380,22 +4380,15 @@ rb_hash_compare_by_id(VALUE hash)
+@@ -4388,22 +4388,15 @@ rb_hash_compare_by_id(VALUE hash)
      ar_force_convert_table(hash, __FILE__, __LINE__);
      HASH_ASSERT(RHASH_ST_TABLE_P(hash));
  
