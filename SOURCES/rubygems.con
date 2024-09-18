@@ -19,7 +19,7 @@ module RubyGemsReq
   end
 
   # Report conflicting gem dependencies including their version.
-  def self.gem_depenencies(specification)
+  def self.gem_dependencies(specification)
     specification.runtime_dependencies.each do |dependency|
       conflict_strings = Helpers::requirement_versions_to_rpm(dependency.requirement).map do |requirement|
         requirement_string = "rubygem(#{dependency.name}) #{requirement}"
@@ -39,7 +39,7 @@ module RubyGemsReq
       begin
         specification = Gem::Specification.load filename
 
-        gem_depenencies(specification)
+        gem_dependencies(specification)
       rescue => e
         # Ignore all errors.
       end
