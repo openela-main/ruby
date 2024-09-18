@@ -1,6 +1,6 @@
 %global major_version 3
 %global minor_version 3
-%global teeny_version 1
+%global teeny_version 5
 %global major_minor_version %{major_version}.%{minor_version}
 
 %global ruby_version %{major_minor_version}.%{teeny_version}
@@ -10,7 +10,7 @@
 #%%global milestone rc1
 
 # Keep the revision enabled for pre-releases from GIT.
-#%%global revision 5124f9ac75
+#%%global revision ef084cc8f4
 
 %global ruby_archive %{name}-%{ruby_version}
 
@@ -27,7 +27,7 @@
 %global rubygems_dir %{_datadir}/rubygems
 
 # Bundled libraries versions
-%global rubygems_version 3.5.9
+%global rubygems_version 3.5.16
 %global rubygems_molinillo_version 0.8.0
 %global rubygems_net_http_version 0.4.0
 %global rubygems_net_protocol_version 0.2.2
@@ -38,7 +38,7 @@
 %global rubygems_uri_version 0.13.0
 
 # Default gems.
-%global bundler_version 2.5.9
+%global bundler_version 2.5.16
 %global bundler_connection_pool_version 2.4.1
 %global bundler_fileutils_version 1.7.2
 %global bundler_net_http_persistent_version 4.0.2
@@ -86,7 +86,7 @@
 %global prettyprint_version 0.2.0
 %global pstore_version 0.1.3
 %global readline_version 0.0.4
-%global reline_version 0.4.1
+%global reline_version 0.5.7
 %global resolv_version 0.3.0
 %global resolv_replace_version 0.1.1
 %global rinda_version 0.2.0
@@ -95,8 +95,8 @@
 %global set_version 1.1.0
 %global shellwords_version 0.2.0
 %global singleton_version 0.2.0
-%global stringio_version 3.1.0
-%global strscan_version 3.0.7
+%global stringio_version 3.1.1
+%global strscan_version 3.0.9
 %global syntax_suggest_version 2.0.0
 %global syslog_version 0.1.2
 %global tempfile_version 0.2.1
@@ -105,17 +105,17 @@
 %global tmpdir_version 0.2.0
 %global tsort_version 0.2.0
 %global un_version 0.3.0
-%global uri_version 0.13.0
+%global uri_version 0.13.1
 %global weakref_version 0.1.3
 %global win32ole_version 1.8.10
 %global yaml_version 0.3.0
 %global prism_version 0.19.0
-%global zlib_version 3.1.0
+%global zlib_version 3.1.1
 
 # Gemified default gems.
 %global bigdecimal_version 3.1.5
 %global io_console_version 0.7.1
-%global irb_version 1.11.0
+%global irb_version 1.13.1
 %global json_version 2.7.1
 %global psych_version 5.1.2
 %global rdoc_version 6.6.3.1
@@ -133,8 +133,8 @@
 %global racc_version 1.7.3
 %global rake_version 13.1.0
 %global rbs_version 3.4.0
-%global rexml_version 3.2.6
-%global rss_version 0.3.0
+%global rexml_version 3.3.6
+%global rss_version 0.3.1
 %global test_unit_version 3.6.1
 %global typeprof_version 0.21.9
 
@@ -167,7 +167,7 @@
 Summary: An interpreter of object-oriented scripting language
 Name: ruby
 Version: %{ruby_version}%{?development_release}
-Release: 2%{?dist}
+Release: 3%{?dist}
 # Licenses, which are likely not included in binary RPMs:
 # Apache-2.0:
 #   benchmark/gc/redblack.rb
@@ -187,10 +187,6 @@ Release: 2%{?dist}
 #   .bundle/gems/net-imap-0.4.9/LICENSE.txt
 #   https://gitlab.com/fedora/legal/fedora-license-data/-/issues/506
 #
-# Approved license without SPDX identifier:
-#   ext/pty/pty.c
-#   https://gitlab.com/fedora/legal/fedora-license-data/-/issues/503
-#
 # BSD-3-Clause: missing/{crypt,mt19937,setproctitle}.c, addr2line.c:2652
 # CC0: ccan/{build_assert/build_assert.h,check_type/check_type.h,
 #   container_of/container_of.h,str/str.h}
@@ -205,11 +201,12 @@ Release: 2%{?dist}
 #   https://gitlab.com/fedora/legal/fedora-license-data/-/merge_requests/145
 # MIT: ccan/list/list.h
 # Ruby OR BSD-2-Clause OR GPL-1.0-or-later: lib/net/protocol.rb
+# Ruby-pty: ext/pty/pty.c
 # Unicode-DFS-2015: some of enc/trans/**/*.src
 #   There is also license review ticket here:
 #   https://gitlab.com/fedora/legal/fedora-license-data/-/issues/500
 # zlib: ext/digest/md5/md5.*, ext/nkf/nkf-utf8/nkf.c
-License: (Ruby OR BSD-2-Clause) AND (Ruby OR BSD-2-Clause OR GPL-1.0-or-later) AND BSD-3-Clause AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND ISC AND LicenseRef-Fedora-Public-Domain AND MIT AND CC0 AND zlib AND Unicode-DFS-2015 AND HPND-Markus-Kuhn
+License: (Ruby OR BSD-2-Clause) AND (Ruby OR BSD-2-Clause OR GPL-1.0-or-later) AND BSD-3-Clause AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND ISC AND LicenseRef-Fedora-Public-Domain AND MIT AND CC0 AND zlib AND Unicode-DFS-2015 AND HPND-Markus-Kuhn AND Ruby-pty
 URL: https://www.ruby-lang.org/
 Source0: https://cache.ruby-lang.org/pub/%{name}/%{major_minor_version}/%{ruby_archive}.tar.xz
 Source1: operating_system.rb
@@ -229,16 +226,21 @@ Source13: test_abrt.rb
 Source14: test_systemtap.rb
 # Ruby OpenSSL FIPS tests.
 Source15: test_openssl_fips.rb
+# RPM gem Requires dependency generator tests.
+Source16: rpm_test_helper.rb
+Source17: test_rubygems_req.rb
+Source18: test_rubygems_prov.rb
+Source19: test_rubygems_con.rb
 
 # The load directive is supported since RPM 4.12, i.e. F21+. The build process
 # fails on older Fedoras.
 %{load:%{SOURCE4}}
 %{load:%{SOURCE5}}
 
-%global __local_generator_requires make -C %{_builddir}/%{buildsubdir}/%{_vpath_builddir} -s runruby TESTRUN_SCRIPT="--enable-gems %{SOURCE9}"
-%global __local_generator_provides make -C %{_builddir}/%{buildsubdir}/%{_vpath_builddir} -s runruby TESTRUN_SCRIPT="--enable-gems %{SOURCE10}"
-%global __local_generator_conflicts make -C %{_builddir}/%{buildsubdir}/%{_vpath_builddir} -s runruby TESTRUN_SCRIPT="--enable-gems %{SOURCE11}"
-%global __local_generator_path ^%{gem_dir}/specifications/.*\.gemspec$
+%define __local_generator_requires make -C %{_builddir}/%{buildsubdir}/%{_vpath_builddir} -s runruby TESTRUN_SCRIPT="--enable-gems %{SOURCE9}"
+%define __local_generator_provides make -C %{_builddir}/%{buildsubdir}/%{_vpath_builddir} -s runruby TESTRUN_SCRIPT="--enable-gems %{SOURCE10}"
+%define __local_generator_conflicts make -C %{_builddir}/%{buildsubdir}/%{_vpath_builddir} -s runruby TESTRUN_SCRIPT="--enable-gems %{SOURCE11}"
+%define __local_generator_path ^%{gem_dir}/specifications/.*\.gemspec$
 
 # Fix ruby_version abuse.
 # https://bugs.ruby-lang.org/issues/11002
@@ -267,16 +269,21 @@ Patch6: ruby-2.7.0-Initialize-ABRT-hook.patch
 # Disable syntax_suggest test suite, which tries to download its dependencies.
 # https://bugs.ruby-lang.org/issues/19297
 Patch9: ruby-3.3.0-Disable-syntax-suggest-test-case.patch
-# Revert patches causing segfaults in alexandria package.
-# https://bugs.ruby-lang.org/issues/20079
-Patch10: ruby-3.3.0-Revert-Optimize-allocations-in-Hash-compare_by_identity.patch
 # Armv8.3+ capable CPUs might segfault with incorrect compilation options.
 # See related upstream report: https://bugs.ruby-lang.org/issues/20085
 # https://bugs.ruby-lang.org/issues/20154
-Patch12: ruby-3.4.0-fix-branch-protection-compilation-for-arm.patch
-# Fix build issue on i686 due to "incompatible pointer type" error.
-# https://bugs.ruby-lang.org/issues/20447
-Patch13: ruby-3.4.0-Fix-pointer-incompatiblity.patch
+# Make sure hardeding flags are correctly applied.
+# https://bugs.ruby-lang.org/issues/20520
+Patch12: ruby-3.4.0-Extract-hardening-CFLAGS-to-a-special-hardenflags-variable.patch
+# Fix build error:
+#   RPM build errors:
+#   error: Installed (but unpackaged) file(s) found:
+#      /usr/bin/bundle.lock
+# This would break not only Ruby itself, but allso all rubygem-packages.
+# https://github.com/rubygems/rubygems/pull/7931
+Patch13: rubygems-3.5.17-Avoid-another-race-condition-of-open-mode.patch
+# https://github.com/rubygems/rubygems/pull/7939
+Patch14: rubygems-3.5.17-Remove-the-lock-file-for-binstubs.patch
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 %{?with_rubypick:Suggests: rubypick}
@@ -294,6 +301,7 @@ BuildRequires: openssl-devel
 BuildRequires: zlib-devel
 %{?with_gmp:BuildRequires: gmp-devel}
 %{?with_systemtap:BuildRequires: %{_bindir}/dtrace}
+%{?with_systemtap:BuildRequires: systemtap-sdt-devel}
 %{?with_yjit:BuildRequires: %{_bindir}/rustc}
 
 # Install section
@@ -748,9 +756,9 @@ analysis result in RBS format, a standard type description format for Ruby
 %patch -P 4 -p1
 %patch -P 6 -p1
 %patch -P 9 -p1
-%patch -P 10 -p1
 %patch -P 12 -p1
 %patch -P 13 -p1
+%patch -P 14 -p1
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -953,8 +961,15 @@ sed -i 's/^/%lang(ja) /' .ruby-doc.ja
 %check
 %if 0%{?with_hardening_test}
 # Check Ruby hardening.
-checksec --file=%{_vpath_builddir}/libruby.so.%{ruby_version} | \
-  grep "Full RELRO.*Canary found.*NX enabled.*DSO.*No RPATH.*No RUNPATH.*Yes.*\d*.*\d*.*libruby.so.%{ruby_version}"
+%define fortification_x86_64  fortified="11" fortify-able="28"
+%define fortification_i686    fortified="10" fortify-able="26"
+%define fortification_aarch64 fortified="10" fortify-able="26"
+%define fortification_ppc64le fortified="7" fortify-able="24"
+%define fortification_s390x   fortified="10" fortify-able="24"
+# https://unix.stackexchange.com/questions/366/convince-grep-to-output-all-lines-not-just-those-with-matches
+checksec --format=xml --file=%{_vpath_builddir}/libruby.so.%{ruby_version} | \
+  sed -r "s/<file (.*)\/>/\1/" | \
+  sed -nr $'/relro="full" canary="yes" nx="yes" pie="dso" rpath="no" runpath="no" symbols="yes" fortify_source="partial" %{expand:%{fortification_%{_target_cpu}}} filename='\''redhat-linux-build\/libruby.so.%{ruby_version}'\''/h; ${p;x;/./Q0;Q1}'
 %endif
 
 # Check RubyGems version.
@@ -1125,6 +1140,21 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT="--enable-gems %{SOURCE13}"
 ln -sfr probes.d %{_vpath_builddir}/
 make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=%{SOURCE14}
 %endif
+
+# Test dependency generators for RPM
+GENERATOR_SCRIPT="%{SOURCE9}" \
+make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
+  -I%{_builddir}/%{buildsubdir}/tool/lib -I%{_sourcedir} --enable-gems \
+  %{SOURCE17} --verbose"
+GENERATOR_SCRIPT="%{SOURCE10}" \
+make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
+  -I%{_builddir}/%{buildsubdir}/tool/lib -I%{_sourcedir} --enable-gems \
+  %{SOURCE18} --verbose"
+GENERATOR_SCRIPT="%{SOURCE11}" \
+make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
+  -I%{_builddir}/%{buildsubdir}/tool/lib -I%{_sourcedir} --enable-gems \
+  %{SOURCE19} --verbose"
+
 
 DISABLE_TESTS=""
 MSPECOPTS=""
@@ -1724,6 +1754,21 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 
 
 %changelog
+* Wed Sep 04 2024 Jarek Prokop <jprokop@redhat.com> - 3.3.5-3
+- Upgrade to Ruby 3.3.5
+  Resolves: RHEL-55409
+- Fix DoS vulnerability in rexml.
+  (CVE-2024-39908)
+  (CVE-2024-41946)
+  (CVE-2024-43398)
+  Resolves: RHEL-57049
+  Resolves: RHEL-57054
+  Resolves: RHEL-57069
+- Fix REXML DoS when parsing an XML having many specific characters such as
+  whitespace character, >] and ]>.
+  (CVE-2024-41123)
+  Resolves: RHEL-52783
+
 * Mon May 20 2024 Jarek Prokop <jprokop@redhat.com> - 3.3.1-2
 - Upgrade to Ruby 3.3.1.
   Resolves: RHEL-37446

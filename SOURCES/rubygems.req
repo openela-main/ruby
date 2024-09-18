@@ -58,7 +58,7 @@ module RubyGemsReq
   end
 
   # Report all gem dependencies including their version.
-  def self.gem_depenencies(specification)
+  def self.gem_dependencies(specification)
     specification.runtime_dependencies.each do |dependency|
       dependency_name = "rubygem(#{dependency.name})"
       requirements = Helpers::requirement_versions_to_rpm(dependency.requirement)
@@ -75,7 +75,7 @@ module RubyGemsReq
         specification = Gem::Specification.load filename
 
         rubygems_dependency(specification)
-        gem_depenencies(specification)
+        gem_dependencies(specification)
       rescue => e
         # Ignore all errors.
       end
