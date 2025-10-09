@@ -22,7 +22,7 @@ diff --git a/gc.c b/gc.c
 index ef9327df1f..1c35856c44 100644
 --- a/gc.c
 +++ b/gc.c
-@@ -10165,8 +10165,20 @@ gc_update_references(rb_objspace_t *objspace)
+@@ -10195,8 +10195,20 @@ gc_update_references(rb_objspace_t *objspace)
      gc_update_table_refs(objspace, finalizer_table);
  }
  
@@ -44,7 +44,7 @@ index ef9327df1f..1c35856c44 100644
  {
      size_t i;
      rb_objspace_t *objspace = &rb_objspace;
-@@ -10239,22 +10251,70 @@ heap_check_moved_i(void *vstart, void *vend, size_t stride, void *data)
+@@ -10269,22 +10281,70 @@ heap_check_moved_i(void *vstart, void *vend, size_t stride, void *data)
      return 0;
  }
  
@@ -120,7 +120,7 @@ index ef9327df1f..1c35856c44 100644
  
      RB_VM_LOCK_ENTER();
      {
-@@ -10274,12 +10334,12 @@ gc_verify_compaction_references(rb_execution_context_t *ec, VALUE self, VALUE do
+@@ -10304,12 +10364,12 @@ gc_verify_compaction_references(rb_execution_context_t *ec, VALUE self, VALUE do
      }
      RB_VM_LOCK_LEAVE();
  
@@ -135,7 +135,7 @@ index ef9327df1f..1c35856c44 100644
  }
  
  VALUE
-@@ -10740,8 +10800,18 @@ gc_disable(rb_execution_context_t *ec, VALUE _)
+@@ -10770,8 +10830,18 @@ gc_disable(rb_execution_context_t *ec, VALUE _)
      return rb_gc_disable();
  }
  
@@ -155,7 +155,7 @@ index ef9327df1f..1c35856c44 100644
  {
      /* If not MinGW, Windows, or does not have mmap, we cannot use mprotect for
       * the read barrier, so we must disable automatic compaction. */
-@@ -10755,8 +10825,14 @@ gc_set_auto_compact(rb_execution_context_t *ec, VALUE _, VALUE v)
+@@ -10785,8 +10855,14 @@ gc_set_auto_compact(rb_execution_context_t *ec, VALUE _, VALUE v)
      return v;
  }
  
@@ -171,7 +171,7 @@ index ef9327df1f..1c35856c44 100644
  {
      return RBOOL(ruby_enable_autocompact);
  }
-@@ -13656,6 +13732,11 @@ Init_GC(void)
+@@ -13694,6 +13770,11 @@ Init_GC(void)
      rb_define_singleton_method(rb_mGC, "malloc_allocated_size", gc_malloc_allocated_size, 0);
      rb_define_singleton_method(rb_mGC, "malloc_allocations", gc_malloc_allocations, 0);
  #endif
@@ -305,7 +305,7 @@ diff --git a/gc.c b/gc.c
 index 92ed76cf96..d71924846a 100644
 --- a/gc.c
 +++ b/gc.c
-@@ -9439,6 +9439,7 @@ gc_move(rb_objspace_t *objspace, VALUE scan, VALUE free, size_t slot_size)
+@@ -9442,6 +9442,7 @@ gc_move(rb_objspace_t *objspace, VALUE scan, VALUE free, size_t slot_size)
      return (VALUE)src;
  }
  
@@ -313,7 +313,7 @@ index 92ed76cf96..d71924846a 100644
  static int
  compare_free_slots(const void *left, const void *right, void *dummy)
  {
-@@ -9486,6 +9487,7 @@ gc_sort_heap_by_empty_slots(rb_objspace_t *objspace)
+@@ -9489,6 +9490,7 @@ gc_sort_heap_by_empty_slots(rb_objspace_t *objspace)
          free(page_list);
      }
  }
@@ -321,7 +321,7 @@ index 92ed76cf96..d71924846a 100644
  
  static void
  gc_ref_update_array(rb_objspace_t * objspace, VALUE v)
-@@ -10165,6 +10167,7 @@ gc_update_references(rb_objspace_t *objspace)
+@@ -10195,6 +10197,7 @@ gc_update_references(rb_objspace_t *objspace)
      gc_update_table_refs(objspace, finalizer_table);
  }
  
@@ -329,7 +329,7 @@ index 92ed76cf96..d71924846a 100644
  /*
   *  call-seq:
   *     GC.latest_compact_info -> {:considered=>{:T_CLASS=>11}, :moved=>{:T_CLASS=>11}}
-@@ -10201,7 +10204,11 @@ gc_compact_stats(VALUE self)
+@@ -10231,7 +10234,11 @@ gc_compact_stats(VALUE self)
  
      return h;
  }
@@ -341,7 +341,7 @@ index 92ed76cf96..d71924846a 100644
  static void
  root_obj_check_moved_i(const char *category, VALUE obj, void *data)
  {
-@@ -10263,6 +10270,10 @@ heap_check_moved_i(void *vstart, void *vend, size_t stride, void *data)
+@@ -10293,6 +10300,10 @@ heap_check_moved_i(void *vstart, void *vend, size_t stride, void *data)
   *
   * This method is implementation specific and not expected to be implemented
   * in any implementation besides MRI.
@@ -352,7 +352,7 @@ index 92ed76cf96..d71924846a 100644
   */
  static VALUE
  gc_compact(VALUE self)
-@@ -10272,7 +10283,11 @@ gc_compact(VALUE self)
+@@ -10302,7 +10313,11 @@ gc_compact(VALUE self)
  
      return gc_compact_stats(self);
  }
@@ -364,7 +364,7 @@ index 92ed76cf96..d71924846a 100644
  /*
   * call-seq:
   *    GC.verify_compaction_references(toward: nil, double_heap: false) -> hash
-@@ -10341,6 +10356,9 @@ gc_verify_compaction_references(int argc, VALUE *argv, VALUE self)
+@@ -10371,6 +10386,9 @@ gc_verify_compaction_references(int argc, VALUE *argv, VALUE self)
  
      return gc_compact_stats(self);
  }
@@ -374,7 +374,7 @@ index 92ed76cf96..d71924846a 100644
  
  VALUE
  rb_gc_start(void)
-@@ -10800,6 +10818,7 @@ gc_disable(rb_execution_context_t *ec, VALUE _)
+@@ -10830,6 +10848,7 @@ gc_disable(rb_execution_context_t *ec, VALUE _)
      return rb_gc_disable();
  }
  
@@ -382,7 +382,7 @@ index 92ed76cf96..d71924846a 100644
  /*
   *  call-seq:
   *     GC.auto_compact = flag
-@@ -10815,16 +10834,15 @@ gc_set_auto_compact(VALUE _, VALUE v)
+@@ -10845,16 +10864,15 @@ gc_set_auto_compact(VALUE _, VALUE v)
  {
      /* If not MinGW, Windows, or does not have mmap, we cannot use mprotect for
       * the read barrier, so we must disable automatic compaction. */
@@ -403,7 +403,7 @@ index 92ed76cf96..d71924846a 100644
  /*
   *  call-seq:
   *     GC.auto_compact    -> true or false
-@@ -10836,6 +10854,9 @@ gc_get_auto_compact(VALUE _)
+@@ -10866,6 +10884,9 @@ gc_get_auto_compact(VALUE _)
  {
      return RBOOL(ruby_enable_autocompact);
  }

@@ -1,4 +1,4 @@
-From 32648da2f6f8036581859c12af2c38b0cf7abf08 Mon Sep 17 00:00:00 2001
+From 13f0edcf3ce422d03f9cca08bc4fbc9c51a8afa6 Mon Sep 17 00:00:00 2001
 From: Jarek Prokop <jprokop@redhat.com>
 Date: Tue, 18 Oct 2022 09:52:13 +0200
 Subject: [PATCH] Use SHA256 instead of SHA1 where needed in tests.
@@ -13,14 +13,14 @@ disabling it completely in default configuration.
  test/openssl/test_pkey_rsa.rb | 18 +++++++++---------
  test/openssl/test_x509cert.rb |  4 +++-
  test/openssl/test_x509crl.rb  | 20 ++++++++++----------
- test/openssl/test_x509req.rb  | 25 +++++++++++++------------
- 8 files changed, 43 insertions(+), 40 deletions(-)
+ test/openssl/test_x509req.rb  | 23 ++++++++++++-----------
+ 8 files changed, 42 insertions(+), 39 deletions(-)
 
 diff --git a/test/openssl/test_asn1.rb b/test/openssl/test_asn1.rb
-index 0fd7971..c79bc14 100644
+index 7e5b9692af..5da4376991 100644
 --- a/test/openssl/test_asn1.rb
 +++ b/test/openssl/test_asn1.rb
-@@ -14,7 +14,7 @@ class  OpenSSL::TestASN1 < OpenSSL::TestCase
+@@ -14,7 +14,7 @@ def test_decode_x509_certificate
        ["keyUsage","keyCertSign, cRLSign",true],
        ["subjectKeyIdentifier","hash",false],
      ]
@@ -29,7 +29,7 @@ index 0fd7971..c79bc14 100644
      cert = OpenSSL::TestUtils.issue_cert(
        subj, key, s, exts, nil, nil, digest: dgst, not_before: now, not_after: now+3600)
  
-@@ -42,7 +42,7 @@ class  OpenSSL::TestASN1 < OpenSSL::TestCase
+@@ -42,7 +42,7 @@ def test_decode_x509_certificate
      assert_equal(OpenSSL::ASN1::Sequence, sig.class)
      assert_equal(2, sig.value.size)
      assert_equal(OpenSSL::ASN1::ObjectId, sig.value[0].class)
@@ -38,7 +38,7 @@ index 0fd7971..c79bc14 100644
      assert_equal(OpenSSL::ASN1::Null, sig.value[1].class)
  
      dn = tbs_cert.value[3] # issuer
-@@ -189,7 +189,7 @@ class  OpenSSL::TestASN1 < OpenSSL::TestCase
+@@ -189,7 +189,7 @@ def test_decode_x509_certificate
      assert_equal(OpenSSL::ASN1::Null, pkey.value[0].value[1].class)
  
      assert_equal(OpenSSL::ASN1::BitString, sig_val.class)
@@ -48,10 +48,10 @@ index 0fd7971..c79bc14 100644
    end
  
 diff --git a/test/openssl/test_ns_spki.rb b/test/openssl/test_ns_spki.rb
-index ed3be86..383931b 100644
+index ed3be86e2c..383931b98b 100644
 --- a/test/openssl/test_ns_spki.rb
 +++ b/test/openssl/test_ns_spki.rb
-@@ -22,7 +22,7 @@ class OpenSSL::TestNSSPI < OpenSSL::TestCase
+@@ -22,7 +22,7 @@ def test_build_data
      spki = OpenSSL::Netscape::SPKI.new
      spki.challenge = "RandomString"
      spki.public_key = key1.public_key
@@ -61,10 +61,10 @@ index ed3be86..383931b 100644
      assert(spki.verify(key1.public_key))
      assert(!spki.verify(key2.public_key))
 diff --git a/test/openssl/test_pkey_dsa.rb b/test/openssl/test_pkey_dsa.rb
-index de6aa63..d105909 100644
+index de6aa63e23..d1059093c5 100644
 --- a/test/openssl/test_pkey_dsa.rb
 +++ b/test/openssl/test_pkey_dsa.rb
-@@ -55,8 +55,8 @@ class OpenSSL::TestPKeyDSA < OpenSSL::PKeyTestCase
+@@ -55,8 +55,8 @@ def test_sign_verify
        assert_equal true, dsa512.verify(OpenSSL::Digest.new('DSS1'), signature, data)
      end
  
@@ -76,10 +76,10 @@ index de6aa63..d105909 100644
      signature0 = (<<~'end;').unpack("m")[0]
        MCwCFH5h40plgU5Fh0Z4wvEEpz0eE9SnAhRPbkRB8ggsN/vsSEYMXvJwjGg/
 diff --git a/test/openssl/test_pkey_ec.rb b/test/openssl/test_pkey_ec.rb
-index 9a4818d..451bab0 100644
+index 9a4818de8e..451bab0321 100644
 --- a/test/openssl/test_pkey_ec.rb
 +++ b/test/openssl/test_pkey_ec.rb
-@@ -100,8 +100,8 @@ class OpenSSL::TestEC < OpenSSL::PKeyTestCase
+@@ -100,8 +100,8 @@ def test_check_key
    def test_sign_verify
      p256 = Fixtures.pkey("p256")
      data = "Sign me!"
@@ -91,10 +91,10 @@ index 9a4818d..451bab0 100644
      signature0 = (<<~'end;').unpack("m")[0]
        MEQCIEOTY/hD7eI8a0qlzxkIt8LLZ8uwiaSfVbjX2dPAvN11AiAQdCYx56Fq
 diff --git a/test/openssl/test_pkey_rsa.rb b/test/openssl/test_pkey_rsa.rb
-index fa84b76..b0ae578 100644
+index fa84b76f4b..b0ae5784b3 100644
 --- a/test/openssl/test_pkey_rsa.rb
 +++ b/test/openssl/test_pkey_rsa.rb
-@@ -80,8 +80,8 @@ class OpenSSL::TestPKeyRSA < OpenSSL::PKeyTestCase
+@@ -80,8 +80,8 @@ def test_new_break
    def test_sign_verify
      rsa1024 = Fixtures.pkey("rsa1024")
      data = "Sign me!"
@@ -105,7 +105,7 @@ index fa84b76..b0ae578 100644
  
      signature0 = (<<~'end;').unpack("m")[0]
        oLCgbprPvfhM4pjFQiDTFeWI9Sk+Og7Nh9TmIZ/xSxf2CGXQrptlwo7NQ28+
-@@ -118,10 +118,10 @@ class OpenSSL::TestPKeyRSA < OpenSSL::PKeyTestCase
+@@ -118,10 +118,10 @@ def test_sign_verify_options
    def test_sign_verify_raw
      key = Fixtures.pkey("rsa-1")
      data = "Sign me!"
@@ -120,7 +120,7 @@ index fa84b76..b0ae578 100644
  
      # Too long data
      assert_raise(OpenSSL::PKey::PKeyError) {
-@@ -134,9 +134,9 @@ class OpenSSL::TestPKeyRSA < OpenSSL::PKeyTestCase
+@@ -134,9 +134,9 @@ def test_sign_verify_raw
        "rsa_pss_saltlen" => 20,
        "rsa_mgf1_md" => "SHA256"
      }
@@ -134,10 +134,10 @@ index fa84b76..b0ae578 100644
  
    def test_sign_verify_raw_legacy
 diff --git a/test/openssl/test_x509cert.rb b/test/openssl/test_x509cert.rb
-index d696b98..6480550 100644
+index d696b98c0a..64805504de 100644
 --- a/test/openssl/test_x509cert.rb
 +++ b/test/openssl/test_x509cert.rb
-@@ -173,13 +173,14 @@ class OpenSSL::TestX509Certificate < OpenSSL::TestCase
+@@ -173,13 +173,14 @@ def test_invalid_extension
    end
  
    def test_sign_and_verify_rsa_sha1
@@ -153,7 +153,7 @@ index d696b98..6480550 100644
    end
  
    def test_sign_and_verify_rsa_md5
-@@ -229,6 +230,7 @@ class OpenSSL::TestX509Certificate < OpenSSL::TestCase
+@@ -229,6 +230,7 @@ def test_dsa_with_sha2
      # SHA1 is allowed from OpenSSL 1.0.0 (0.9.8 requires DSS1)
      cert = issue_cert(@ca, @dsa256, 1, [], nil, nil, digest: "sha1")
      assert_equal("dsaWithSHA1", cert.signature_algorithm)
@@ -162,10 +162,10 @@ index d696b98..6480550 100644
  
    def test_check_private_key
 diff --git a/test/openssl/test_x509crl.rb b/test/openssl/test_x509crl.rb
-index bcdb0a6..146ee07 100644
+index bcdb0a697c..146ee07309 100644
 --- a/test/openssl/test_x509crl.rb
 +++ b/test/openssl/test_x509crl.rb
-@@ -20,7 +20,7 @@ class OpenSSL::TestX509CRL < OpenSSL::TestCase
+@@ -20,7 +20,7 @@ def test_basic
  
      cert = issue_cert(@ca, @rsa2048, 1, [], nil, nil)
      crl = issue_crl([], 1, now, now+1600, [],
@@ -174,7 +174,7 @@ index bcdb0a6..146ee07 100644
      assert_equal(1, crl.version)
      assert_equal(cert.issuer.to_der, crl.issuer.to_der)
      assert_equal(now, crl.last_update)
-@@ -57,7 +57,7 @@ class OpenSSL::TestX509CRL < OpenSSL::TestCase
+@@ -57,7 +57,7 @@ def test_revoked
      ]
      cert = issue_cert(@ca, @rsa2048, 1, [], nil, nil)
      crl = issue_crl(revoke_info, 1, Time.now, Time.now+1600, [],
@@ -183,7 +183,7 @@ index bcdb0a6..146ee07 100644
      revoked = crl.revoked
      assert_equal(5, revoked.size)
      assert_equal(1, revoked[0].serial)
-@@ -98,7 +98,7 @@ class OpenSSL::TestX509CRL < OpenSSL::TestCase
+@@ -98,7 +98,7 @@ def test_revoked
  
      revoke_info = (1..1000).collect{|i| [i, now, 0] }
      crl = issue_crl(revoke_info, 1, Time.now, Time.now+1600, [],
@@ -192,7 +192,7 @@ index bcdb0a6..146ee07 100644
      revoked = crl.revoked
      assert_equal(1000, revoked.size)
      assert_equal(1, revoked[0].serial)
-@@ -124,7 +124,7 @@ class OpenSSL::TestX509CRL < OpenSSL::TestCase
+@@ -124,7 +124,7 @@ def test_extension
  
      cert = issue_cert(@ca, @rsa2048, 1, cert_exts, nil, nil)
      crl = issue_crl([], 1, Time.now, Time.now+1600, crl_exts,
@@ -201,7 +201,7 @@ index bcdb0a6..146ee07 100644
      exts = crl.extensions
      assert_equal(3, exts.size)
      assert_equal("1", exts[0].value)
-@@ -160,24 +160,24 @@ class OpenSSL::TestX509CRL < OpenSSL::TestCase
+@@ -160,24 +160,24 @@ def test_extension
      assert_equal(false, exts[2].critical?)
  
      no_ext_crl = issue_crl([], 1, Time.now, Time.now+1600, [],
@@ -230,7 +230,7 @@ index bcdb0a6..146ee07 100644
      assert_match(/X509v3 CRL Number:\s+#{2**100}/m, crl.to_text)
      assert_match((2**100).to_s, crl.extensions[0].value)
    end
-@@ -185,7 +185,7 @@ class OpenSSL::TestX509CRL < OpenSSL::TestCase
+@@ -185,7 +185,7 @@ def test_crlnumber
    def test_sign_and_verify
      cert = issue_cert(@ca, @rsa2048, 1, [], nil, nil)
      crl = issue_crl([], 1, Time.now, Time.now+1600, [],
@@ -239,7 +239,7 @@ index bcdb0a6..146ee07 100644
      assert_equal(false, crl.verify(@rsa1024))
      assert_equal(true,  crl.verify(@rsa2048))
      assert_equal(false, crl_error_returns_false { crl.verify(@dsa256) })
-@@ -195,7 +195,7 @@ class OpenSSL::TestX509CRL < OpenSSL::TestCase
+@@ -195,7 +195,7 @@ def test_sign_and_verify
  
      cert = issue_cert(@ca, @dsa512, 1, [], nil, nil)
      crl = issue_crl([], 1, Time.now, Time.now+1600, [],
@@ -249,10 +249,10 @@ index bcdb0a6..146ee07 100644
      assert_equal(false, crl_error_returns_false { crl.verify(@rsa2048) })
      assert_equal(false, crl.verify(@dsa256))
 diff --git a/test/openssl/test_x509req.rb b/test/openssl/test_x509req.rb
-index ee9c678..ff17c41 100644
+index bac9780d6b..b98754b8c8 100644
 --- a/test/openssl/test_x509req.rb
 +++ b/test/openssl/test_x509req.rb
-@@ -23,31 +23,31 @@ class OpenSSL::TestX509Request < OpenSSL::TestCase
+@@ -23,26 +23,26 @@ def issue_csr(ver, dn, key, digest)
    end
  
    def test_public_key
@@ -275,12 +275,6 @@ index ee9c678..ff17c41 100644
      assert_equal(0, req.version)
      req = OpenSSL::X509::Request.new(req.to_der)
      assert_equal(0, req.version)
- 
--    req = issue_csr(1, @dn, @rsa1024, OpenSSL::Digest.new('SHA1'))
-+    req = issue_csr(1, @dn, @rsa1024, OpenSSL::Digest.new('SHA256'))
-     assert_equal(1, req.version)
-     req = OpenSSL::X509::Request.new(req.to_der)
-     assert_equal(1, req.version)
    end
  
    def test_subject
@@ -289,7 +283,7 @@ index ee9c678..ff17c41 100644
      assert_equal(@dn.to_der, req.subject.to_der)
      req = OpenSSL::X509::Request.new(req.to_der)
      assert_equal(@dn.to_der, req.subject.to_der)
-@@ -78,9 +78,9 @@ class OpenSSL::TestX509Request < OpenSSL::TestCase
+@@ -73,9 +73,9 @@ def test_attr
        OpenSSL::X509::Attribute.new("msExtReq", attrval),
      ]
  
@@ -301,15 +295,15 @@ index ee9c678..ff17c41 100644
      req1.attributes = attrs
      assert_equal(req0.to_der, req1.to_der)
  
-@@ -108,6 +108,7 @@ class OpenSSL::TestX509Request < OpenSSL::TestCase
+@@ -103,6 +103,7 @@ def test_sign_and_verify_rsa_sha1
      assert_equal(false, request_error_returns_false { req.verify(@dsa512) })
-     req.version = 1
+     req.subject = OpenSSL::X509::Name.parse("/C=JP/CN=FooBarFooBar")
      assert_equal(false, req.verify(@rsa1024))
 +  rescue OpenSSL::X509::RequestError # RHEL 9 disables SHA1
    end
  
    def test_sign_and_verify_rsa_md5
-@@ -122,7 +123,7 @@ class OpenSSL::TestX509Request < OpenSSL::TestCase
+@@ -117,7 +118,7 @@ def test_sign_and_verify_rsa_md5
    end
  
    def test_sign_and_verify_dsa
@@ -318,7 +312,7 @@ index ee9c678..ff17c41 100644
      assert_equal(false, request_error_returns_false { req.verify(@rsa1024) })
      assert_equal(false, request_error_returns_false { req.verify(@rsa2048) })
      assert_equal(false, req.verify(@dsa256))
-@@ -137,14 +138,14 @@ class OpenSSL::TestX509Request < OpenSSL::TestCase
+@@ -132,14 +133,14 @@ def test_sign_and_verify_dsa_md5
    end
  
    def test_dup

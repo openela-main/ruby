@@ -1,6 +1,6 @@
 %global major_version 3
 %global minor_version 1
-%global teeny_version 4
+%global teeny_version 7
 %global major_minor_version %{major_version}.%{minor_version}
 
 %global ruby_version %{major_minor_version}.%{teeny_version}
@@ -22,7 +22,7 @@
 %endif
 
 
-%global release 143
+%global release 146
 %{!?release_string:%define release_string %{?development_release:0.}%{release}%{?development_release:.%{development_release}}%{?dist}}
 
 # The RubyGems library has to stay out of Ruby directory tree, since the
@@ -30,13 +30,13 @@
 %global rubygems_dir %{_datadir}/rubygems
 
 # Bundled libraries versions
-%global rubygems_version 3.3.26
+%global rubygems_version 3.3.27
 %global rubygems_molinillo_version 0.7.0
 %global rubygems_optparse_version 0.2.0
 %global rubygems_tsort_version 0.1.0
 
 # Default gems.
-%global bundler_version 2.3.26
+%global bundler_version 2.3.27
 %global bundler_connection_pool_version 2.3.0
 %global bundler_fileutils_version 1.4.1
 %global bundler_molinillo_version 0.8.0
@@ -45,7 +45,7 @@
 %global bundler_tmpdir_version 0.1.0
 # TODO: Check the version if/when available in library.
 %global bundler_tsort_version 0.1.1
-%global bundler_uri_version 0.10.3
+%global bundler_uri_version 0.10.1
 
 %global bigdecimal_version 3.1.1
 %global did_you_mean_version 1.6.1
@@ -56,20 +56,20 @@
 %global openssl_version 3.0.1
 %global psych_version 4.0.4
 %global racc_version 1.6.0
-%global rdoc_version 6.4.0
-%global stringio_version 3.0.1
+%global rdoc_version 6.4.1.1
+%global stringio_version 3.0.1.2
 
 # Bundled gems.
 %global minitest_version 5.15.0
 %global power_assert_version 2.0.1
 %global rake_version 13.0.6
 %global test_unit_version 3.5.3
-%global rexml_version 3.2.5
-%global rss_version 0.2.9
-%global net_ftp_version 0.1.3
-%global net_imap_version 0.2.3
+%global rexml_version 3.3.9
+%global rss_version 0.3.1
+%global net_ftp_version 0.1.4
+%global net_imap_version 0.2.4
 %global net_pop_version 0.1.1
-%global net_smtp_version 0.3.1
+%global net_smtp_version 0.3.1.1
 %global matrix_version 0.4.2
 %global prime_version 0.1.2
 %global rbs_version 2.7.0
@@ -175,15 +175,15 @@ Patch23: ruby-3.1.2-ossl-tests-replace-sha1.patch
 # https://github.com/ruby/ruby/pull/5934
 Patch24: ruby-3.2.0-define-unsupported-gc-compaction-methods-as-rb_f_notimplement.patch
 # To regenerate the patch you need to have ruby, autoconf, xz, tar and make installed:
-# tar -Jxvf ./ruby-3.1.4.tar.xz
+# tar -Jxvf ./ruby-3.1.5.tar.xz
 # git clone https://github.com/ruby/ruby.git
-# cd ruby && git checkout v3_1_4
+# cd ruby && git checkout v3_1_5
 # patch -p1 < ../ruby-3.2.0-define-unsupported-gc-compaction-methods-as-rb_f_notimplement.patch
 # ./autogen.sh && ./configure
 # make gc.rbinc miniprelude.c
 # cd ..
-# diff -u {ruby-3.1.4,ruby}/gc.rbinc > ruby-3.2.0-define-unsupported-gc-compaction-methods_generated-files.patch
-# diff -u {ruby-3.1.4,ruby}/miniprelude.c >> ruby-3.2.0-define-unsupported-gc-compaction-methods_generated-files.patch
+# diff -u {ruby-3.1.5,ruby}/gc.rbinc > ruby-3.2.0-define-unsupported-gc-compaction-methods_generated-files.patch
+# diff -u {ruby-3.1.5,ruby}/miniprelude.c >> ruby-3.2.0-define-unsupported-gc-compaction-methods_generated-files.patch
 Patch25: ruby-3.2.0-define-unsupported-gc-compaction-methods_generated-files.patch
 # Define the GC compaction support macro at run time.
 # https://bugs.ruby-lang.org/issues/18829
@@ -220,30 +220,6 @@ Patch35: ruby-irb-1.4.1-set-rdoc-soft-dep.patch
 # https://github.com/ruby/ruby/commit/bffadcd6d46ccfccade79ce0efb60ced8eac4483
 # https://bugs.ruby-lang.org/issues/19529#note-7
 Patch36: ruby-3.1.4-Skip-test_compaction_bug_19529-if-compaction-unsupported.patch
-# Bundler does not correctly resolve archful gems in 2.3.26.
-# Example of such an issue
-# https://github.com/sclorg/s2i-ruby-container/issues/469
-# The patch is an amalgamation of the following:
-# https://github.com/rubygems/rubygems/pull/6225
-# https://github.com/rubygems/rubygems/commit/7b64c64262a7a980c0eb23b96ea56cf72ea06e89
-# Backport requested in
-# https://bugs.ruby-lang.org/issues/19576
-Patch37: rubygem-bundler-2.3.26-Provide-fix-for-bundler-Gemfile-resolving-regression.patch
-Patch38: rubygem-bundler-2.3.26-Tests-from-bundler-PR-6225.patch
-# Continuation of the bundler fix for s2i-ruby-container #469 issue.
-# Additionally to already described problem, when bundler is run with
-# --deployment it again resolves to the incorrect gem from Rubygems repository.
-# Fix and test from:
-# https://github.com/rubygems/rubygems/pull/6261
-# https://bugs.ruby-lang.org/issues/19576#note-4
-Patch39: rubygem-bundler-2.3.26-Backport-Fix-another-issue-of-Bundler-not-falling-back.patch
-Patch40: rubygem-bundler-2.3.26-Backport-Fix-another-issue-of-Bundler-not-falling-back-test.patch
-# Renew expired test certificates.
-# https://github.com/ruby/net-http/pull/169
-Patch41: ruby-3.4.0-ruby-net-http-Renew-test-certificates.patch
-# Update URI to 0.12.2 and Bundler::URI to 0.10.3 to mitigate CVE-2023-36617.
-# https://github.com/ruby/ruby/pull/7996
-Patch42: ruby-3.1.5-CVE-2023-36617-for-Ruby-3.1.patch
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Suggests: rubypick
@@ -712,15 +688,6 @@ rm -rf ext/fiddle/libffi*
 %patch34 -p1
 %patch35 -p1
 %patch36 -p1
-%patch37 -p2
-%patch39 -p2
-%patch41 -p1
-%patch42 -p1
-
-pushd spec/bundler
-%patch38 -p3
-%patch40 -p3
-popd
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -882,6 +849,17 @@ find %{buildroot}%{gem_dir}/extensions/*-%{_target_os}/%{major_minor_version}.*/
 # Remove the extension sources and library copies from `lib` dir.
 find %{buildroot}%{gem_dir}/gems/*/ext -maxdepth 0 -exec rm -rf '{}' +
 find %{buildroot}%{gem_dir}/gems/*/lib -name \*.so -delete
+
+# Bundled gems with extensions leave behind an exts.mk that gets installed
+# into their final directory. The file is not needed nor expected after build.
+# Follow the state of other gems that also create exts.mk but do not install
+# them. Therefore delete the files.
+# Otherwise rpmbuild will complain with the following:
+# Fixes:
+# error: Installed (but unpackaged) file(s) found:
+#   /usr/share/gems/gems/debug-1.6.3/exts.mk
+#   /usr/share/gems/gems/rbs-2.7.0/exts.mk
+find %{buildroot}%{gem_dir}/gems -name 'exts.mk' -exec rm '{}' \;
 
 # Move man pages into proper location
 mkdir -p %{buildroot}%{_mandir}/man{1,5}
@@ -1296,7 +1274,7 @@ make runruby TESTRUN_SCRIPT=" \
 %{gem_dir}/specifications/default/abbrev-0.1.0.gemspec
 %{gem_dir}/specifications/default/base64-0.1.1.gemspec
 %{gem_dir}/specifications/default/benchmark-0.2.0.gemspec
-%{gem_dir}/specifications/default/cgi-0.3.6.gemspec
+%{gem_dir}/specifications/default/cgi-0.3.7.gemspec
 %{gem_dir}/specifications/default/csv-3.2.5.gemspec
 %{gem_dir}/specifications/default/date-3.2.2.gemspec
 %{gem_dir}/specifications/default/delegate-0.2.0.gemspec
@@ -1318,7 +1296,7 @@ make runruby TESTRUN_SCRIPT=" \
 %{gem_dir}/specifications/default/ipaddr-1.2.4.gemspec
 %{gem_dir}/specifications/default/logger-1.5.0.gemspec
 %{gem_dir}/specifications/default/mutex_m-0.1.1.gemspec
-%{gem_dir}/specifications/default/net-http-0.3.0.gemspec
+%{gem_dir}/specifications/default/net-http-0.3.0.1.gemspec
 %{gem_dir}/specifications/default/net-protocol-0.1.2.gemspec
 %{gem_dir}/specifications/default/nkf-0.1.1.gemspec
 %{gem_dir}/specifications/default/observer-0.1.1.gemspec
@@ -1352,7 +1330,7 @@ make runruby TESTRUN_SCRIPT=" \
 %{gem_dir}/specifications/default/tmpdir-0.1.2.gemspec
 %{gem_dir}/specifications/default/tsort-0.1.0.gemspec
 %{gem_dir}/specifications/default/un-0.2.0.gemspec
-%{gem_dir}/specifications/default/uri-0.12.2.gemspec
+%{gem_dir}/specifications/default/uri-0.12.4.gemspec
 %{gem_dir}/specifications/default/weakref-0.1.1.gemspec
 #%%{gem_dir}/specifications/default/win32ole-1.8.8.gemspec
 %{gem_dir}/specifications/default/yaml-0.2.0.gemspec
@@ -1571,10 +1549,7 @@ make runruby TESTRUN_SCRIPT=" \
 %doc %{gem_dir}/gems/rss-%{rss_version}/NEWS.md
 %{gem_dir}/gems/rss-%{rss_version}/lib
 %{gem_dir}/specifications/rss-%{rss_version}.gemspec
-%doc %{gem_dir}/gems/rss-%{rss_version}/Gemfile
 %doc %{gem_dir}/gems/rss-%{rss_version}/README.md
-%doc %{gem_dir}/gems/rss-%{rss_version}/Rakefile
-%doc %{gem_dir}/gems/rss-%{rss_version}/test
 
 %files -n rubygem-typeprof
 %dir %{gem_dir}/gems/typeprof-%{typeprof_version}
@@ -1592,29 +1567,49 @@ make runruby TESTRUN_SCRIPT=" \
 
 
 %changelog
+* Thu Mar 27 2025 Jarek Prokop <jprokop@redhat.com> - 3.1.7-146
+- Upgrade to Ruby 3.1.7.
+  Resolves: RHEL-85235
+- Fix DoS vulnerability in REXML. (CVE-2024-39908)
+  Resolves: RHEL-57050
+
+* Tue Nov 26 2024 Jarek Prokop <jprokop@redhat.com> - 3.1.5-145
+- Fix REXML ReDoS vulnerability. (CVE-2024-49761)
+  Resolves: RHEL-68526
+
+* Tue Apr 30 2024 Jun Aruga <jaruga@redhat.com> - 3.1.5-144
+- Upgrade to Ruby 3.1.5.
+  Resolves: RHEL-33978
+- Fix buffer overread vulnerability in StringIO.
+  Resolves: RHEL-34129
+- Fix RCE vulnerability with .rdoc_options in RDoc.
+  Resolves: RHEL-34121
+- Fix arbitrary memory address read vulnerability with Regex search.
+  Resolves: RHEL-33871
+
 * Thu Mar 14 2024 Jarek Prokop <jprokop@redhat.com> - 3.1.4-143
 - Upgrade to Ruby 3.1.4.
-  Resolves: RHEL-29052
+  Resolves: RHEL-5586
 - Fix HTTP response splitting in CGI.
-  Resolves: RHEL-29054
+  Resolves: RHEL-5591
 - Fix ReDos vulnerability in URI.
-  Resolves: RHEL-29051
-  Resolves: RHEL-29050
+  Resolves: RHEL-28919
+  Resolves: RHEL-5612
 - Fix ReDos vulnerability in Time.
-  Resolves: RHEL-29053
+  Resolves: RHEL-28920
 - Make RDoc soft dependency in IRB.
-  Resolves: RHEL-29048
+  Resolves: RHEL-5613
 
 * Sun Dec 03 2023 Jun Aruga <jaruga@redhat.com> - 3.1.2-142
 - Bypass git submodule test failure on Git >= 2.38.1.
 - Fix tests with Europe/Amsterdam pre-1970 time on tzdata version 2022b.
 - Fix for tzdata-2022g.
 - Fix OpenSSL.fips_mode and OpenSSL::PKey.read in OpenSSL 3 FIPS.
-  Resolves: RHEL-12437
+  Resolves: RHEL-5590
 - ssl: use ffdhe2048 from RFC 7919 as the default DH group parameters
-  Related: RHEL-12437
+  Related: RHEL-5590
 - Disable fiddle tests that use FFI closures.
-  Related: RHEL-12437
+  Related: RHEL-5590
 
 * Fri Jun 03 2022 Jarek Prokop <jprokop@redhat.com> - 3.1.2-141
 - Upgrade to Ruby 3.1.2 by merging Fedora Rawhide branch (commit: b7b5473).
