@@ -277,6 +277,9 @@ Patch9: ruby-3.3.0-Disable-syntax-suggest-test-case.patch
 # Make sure hardeding flags are correctly applied.
 # https://bugs.ruby-lang.org/issues/20520
 Patch12: ruby-3.4.0-Extract-hardening-CFLAGS-to-a-special-hardenflags-variable.patch
+# Fix the tests using SHA-1 Probabilistic Signature Scheme (PSS) parameters.
+# https://github.com/ruby/openssl/pull/879
+Patch13: ruby-3.4.2-openssl-Fix-SHA-1-PSS-tests.patch
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 %{?with_rubypick:Suggests: rubypick}
@@ -752,6 +755,7 @@ analysis result in RBS format, a standard type description format for Ruby
 %patch -P 6 -p1
 %patch -P 9 -p1
 %patch -P 12 -p1
+%patch -P 13 -p1
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -1752,28 +1756,28 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 %changelog
 * Fri Apr 11 2025 Jarek Prokop <jprokop@redhat.com> - 3.3.8-4
 - Upgrade to Ruby 3.3.8.
-  Resolves: RHEL-86933
+  Resolves: RHEL-68631
 - Fix Net::IMAP vulnerable to possible DoS by memory exhaustion. (CVE-2025-25186)
 - Fix Denial of Service in CGI::Cookie.parse. (CVE-2025-27219)
-  Resolves: RHEL-87182
+  Resolves: RHEL-86109
 - Fix userinfo leakage in URI#join, URI#merge and URI#+. (CVE-2025-27221)
 
 * Wed Sep 04 2024 Jarek Prokop <jprokop@redhat.com> - 3.3.5-3
 - Upgrade to Ruby 3.3.5
-  Resolves: RHEL-57577
+  Resolves: RHEL-55411
 - Fix DoS vulnerability in rexml.
   (CVE-2024-39908)
   (CVE-2024-41946)
   (CVE-2024-43398)
-  Resolves: RHEL-57574
-  Resolves: RHEL-57571
-  Resolves: RHEL-57579
+  Resolves: RHEL-57575
+  Resolves: RHEL-57572
+  Resolves: RHEL-57068
 - Fix REXML DoS when parsing an XML having many specific characters such as
   whitespace character, >] and ]>.
   (CVE-2024-41123)
-  Resolves: RHEL-57568
+  Resolves: RHEL-57569
 - Fix incorrect symlink for rubygem-irb's library.
-  Resolves: RHEL-57598
+  Resolves: RHEL-42646
 
 * Mon May 20 2024 Jarek Prokop <jprokop@redhat.com> - 3.3.1-2
 - Upgrade to Ruby 3.3.1.
