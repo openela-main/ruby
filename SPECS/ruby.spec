@@ -1,6 +1,6 @@
 %global major_version 3
 %global minor_version 3
-%global teeny_version 8
+%global teeny_version 10
 %global major_minor_version %{major_version}.%{minor_version}
 
 %global ruby_version %{major_minor_version}.%{teeny_version}
@@ -79,7 +79,7 @@
 %global nkf_version 0.1.3
 %global observer_version 0.1.2
 %global open3_version 0.2.1
-%global openssl_version 3.2.0
+%global openssl_version 3.2.2
 %global open_uri_version 0.4.1
 %global optparse_version 0.4.0
 %global ostruct_version 0.6.0
@@ -89,7 +89,7 @@
 %global pstore_version 0.1.3
 %global readline_version 0.0.4
 %global reline_version 0.5.10
-%global resolv_version 0.3.0
+%global resolv_version 0.3.1
 %global resolv_replace_version 0.1.1
 %global rinda_version 0.2.0
 %global ruby2_keywords_version 0.0.5
@@ -107,7 +107,7 @@
 %global tmpdir_version 0.2.0
 %global tsort_version 0.2.0
 %global un_version 0.3.0
-%global uri_version 0.13.2
+%global uri_version 0.13.3
 %global weakref_version 0.1.3
 %global win32ole_version 1.8.10
 %global yaml_version 0.3.0
@@ -125,7 +125,7 @@
 # Bundled gems.
 %global debug_version 1.9.2
 %global net_ftp_version 0.3.4
-%global net_imap_version 0.4.19
+%global net_imap_version 0.4.21
 %global net_pop_version 0.1.2
 %global net_smtp_version 0.5.1
 %global matrix_version 0.4.2
@@ -135,7 +135,7 @@
 %global racc_version 1.7.3
 %global rake_version 13.1.0
 %global rbs_version 3.4.0
-%global rexml_version 3.3.9
+%global rexml_version 3.4.4
 %global rss_version 0.3.1
 %global test_unit_version 3.6.1
 %global typeprof_version 0.21.9
@@ -169,7 +169,7 @@
 Summary: An interpreter of object-oriented scripting language
 Name: ruby
 Version: %{ruby_version}%{?development_release}
-Release: 4%{?dist}
+Release: 5%{?dist}
 # Licenses, which are likely not included in binary RPMs:
 # Apache-2.0:
 #   benchmark/gc/redblack.rb
@@ -185,9 +185,10 @@ Release: 4%{?dist}
 #   https://github.com/flori/json/issues/277
 #   https://github.com/flori/json/pull/567
 #
-# Licenses under review:
-#   .bundle/gems/net-imap-0.4.19/LICENSE.txt
-#   https://gitlab.com/fedora/legal/fedora-license-data/-/issues/506
+# IETF (this is not official SPDX identifier)
+#   .bundle/gems/net-imap-0.4.9/LICENSE.txt
+#     Licenses in this file covers fair use and don't need to be listed:
+#     https://gitlab.com/fedora/legal/fedora-license-data/-/issues/506
 #
 # BSD-3-Clause: missing/{crypt,mt19937,setproctitle}.c, addr2line.c:2652
 # CC0: ccan/{build_assert/build_assert.h,check_type/check_type.h,
@@ -1754,6 +1755,14 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 
 
 %changelog
+* Wed Nov 05 2025 Jun Aruga <jaruga@redhat.com> - 3.3.10-5
+- Upgrade to Ruby 3.3.10.
+  Resolves: RHEL-127912
+- Fix possible denial of service in resolv gem (CVE-2025-24294)
+- Fix URI Credential Leakage Bypass previous fixes. (CVE-2025-61594)
+- Fix REXML denial of service. (CVE-2025-58767)
+  Resolves: RHEL-122015
+
 * Fri Apr 11 2025 Jarek Prokop <jprokop@redhat.com> - 3.3.8-4
 - Upgrade to Ruby 3.3.8.
   Resolves: RHEL-68631
