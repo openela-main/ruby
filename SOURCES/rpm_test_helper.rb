@@ -52,7 +52,7 @@ module RPMTestHelper
         s.description = "Fake gemspec helper for testing Rubygem Generators".freeze
         s.email = ["example@example.com".freeze]
         s.files = ["LICENSE.txt".freeze, "lib/#{gem_info.name}.rb".freeze, "#{gem_info.name}.gemspec".freeze]
-        s.homepage = "https://pkgs.fedoraproject.org/rpms/ruby".freeze
+        s.homepage = "https://gitlab.com/redhat".freeze
         s.licenses = ["MIT".freeze]
         s.required_ruby_version = Gem::Requirement.new(">= 2.5.0".freeze)
         s.rubygems_version = "3.3.5".freeze

@@ -20,10 +20,10 @@ index 4e050b4bc2..e27968602a 100644
  
  class OpenSSL::TestProvider < OpenSSL::TestCase
    def test_openssl_provider_name_inspect
-@@ -13,14 +13,22 @@ def test_openssl_provider_name_inspect
+@@ -12,14 +12,22 @@ def test_openssl_provider_name_inspect
+   end
  
    def test_openssl_provider_names
-     omit 'not working on freebsd RubyCI' if ENV['RUBYCI_NICKNAME'] =~ /freebsd/
 +    # We expect the following providers are loaded in the cases:
 +    # * Non-FIPS: default
 +    # * FIPS: fips, base
@@ -49,10 +49,10 @@ index 4e050b4bc2..e27968602a 100644
      end;
    end
  
-@@ -35,6 +43,9 @@ def test_unloaded_openssl_provider
+@@ -33,6 +41,9 @@ def test_unloaded_openssl_provider
+   end
  
    def test_openssl_legacy_provider
-     omit 'not working on freebsd RubyCI' if ENV['RUBYCI_NICKNAME'] =~ /freebsd/
 +    # The legacy provider is not supported on FIPS.
 +    omit_on_fips
 +

@@ -1,6 +1,6 @@
 %global major_version 3
 %global minor_version 3
-%global teeny_version 8
+%global teeny_version 10
 %global major_minor_version %{major_version}.%{minor_version}
 
 %global ruby_version %{major_minor_version}.%{teeny_version}
@@ -79,7 +79,7 @@
 %global nkf_version 0.1.3
 %global observer_version 0.1.2
 %global open3_version 0.2.1
-%global openssl_version 3.2.0
+%global openssl_version 3.2.2
 %global open_uri_version 0.4.1
 %global optparse_version 0.4.0
 %global ostruct_version 0.6.0
@@ -89,7 +89,7 @@
 %global pstore_version 0.1.3
 %global readline_version 0.0.4
 %global reline_version 0.5.10
-%global resolv_version 0.3.0
+%global resolv_version 0.3.1
 %global resolv_replace_version 0.1.1
 %global rinda_version 0.2.0
 %global ruby2_keywords_version 0.0.5
@@ -107,7 +107,7 @@
 %global tmpdir_version 0.2.0
 %global tsort_version 0.2.0
 %global un_version 0.3.0
-%global uri_version 0.13.2
+%global uri_version 0.13.3
 %global weakref_version 0.1.3
 %global win32ole_version 1.8.10
 %global yaml_version 0.3.0
@@ -125,7 +125,7 @@
 # Bundled gems.
 %global debug_version 1.9.2
 %global net_ftp_version 0.3.4
-%global net_imap_version 0.4.19
+%global net_imap_version 0.4.21
 %global net_pop_version 0.1.2
 %global net_smtp_version 0.5.1
 %global matrix_version 0.4.2
@@ -135,7 +135,7 @@
 %global racc_version 1.7.3
 %global rake_version 13.1.0
 %global rbs_version 3.4.0
-%global rexml_version 3.3.9
+%global rexml_version 3.4.4
 %global rss_version 0.3.1
 %global test_unit_version 3.6.1
 %global typeprof_version 0.21.9
@@ -173,7 +173,7 @@
 Summary: An interpreter of object-oriented scripting language
 Name: ruby
 Version: %{ruby_version}%{?development_release}
-Release: 10%{?dist}
+Release: 11%{?dist}
 # Licenses, which are likely not included in binary RPMs:
 # Apache-2.0:
 #   benchmark/gc/redblack.rb
@@ -189,9 +189,10 @@ Release: 10%{?dist}
 #   https://github.com/flori/json/issues/277
 #   https://github.com/flori/json/pull/567
 #
-# Licenses under review:
-#   .bundle/gems/net-imap-0.4.19/LICENSE.txt
-#   https://gitlab.com/fedora/legal/fedora-license-data/-/issues/506
+# IETF (this is not official SPDX identifier)
+#   .bundle/gems/net-imap-0.4.9/LICENSE.txt
+#     Licenses in this file covers fair use and don't need to be listed:
+#     https://gitlab.com/fedora/legal/fedora-license-data/-/issues/506
 #
 # BSD-3-Clause: missing/{crypt,mt19937,setproctitle}.c, addr2line.c:2652
 # CC0: ccan/{build_assert/build_assert.h,check_type/check_type.h,
@@ -285,10 +286,6 @@ Patch12: ruby-3.4.0-Extract-hardening-CFLAGS-to-a-special-hardenflags-variable.p
 # https://github.com/ruby/openssl/pull/710
 # https://github.com/ruby/ruby/commit/6213ab1a51387fd9cdcb5e87908722f3bbdf78cb
 Patch13: ruby-3.4.0-openssl-respect-crypto-policies-tls-min.patch
-# test_provider.rb: Make a legacy provider test optional.
-# https://github.com/ruby/openssl/pull/721
-# https://github.com/ruby/ruby/commit/eb4082284aace391a16a389a70eeaf1e7db5c542
-Patch14: ruby-3.4.0-openssl-make-a-legacy-provider-test-optional.patch
 # Fix test_provider.rb in FIPS.
 # https://github.com/ruby/openssl/pull/794
 # https://github.com/ruby/ruby/commit/ad742de79bcce53290005429868f63c51cbeb0f2
@@ -314,11 +311,6 @@ BuildRequires: zlib-devel
 %{?with_gmp:BuildRequires: gmp-devel}
 %{?with_systemtap:BuildRequires: %{_bindir}/dtrace}
 %{?with_systemtap:BuildRequires: systemtap-sdt-devel}
-# Despite pulling what we'd expect to need, there is a missing dependency
-# in systemtap, where pulling in %%{_bindir}/dtrace does not pull in also
-# the python3-pyparsing package that is required for full functionality.
-# Workaround: RHEL-86248
-%{?with_systemtap:BuildRequires: python3-pyparsing}
 %{?with_yjit:BuildRequires: %{_bindir}/rustc}
 
 # Install section
@@ -782,7 +774,6 @@ analysis result in RBS format, a standard type description format for Ruby
 %patch 9 -p1
 %patch 12 -p1
 %patch 13 -p1
-%patch 14 -p1
 %patch 15 -p1
 %patch 16 -p1
 
@@ -1790,6 +1781,14 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 
 
 %changelog
+* Thu Nov 13 2025 Jun Aruga <jaruga@redhat.com> - 3.3.10-11
+- Upgrade to Ruby 3.3.10.
+  Resolves: RHEL-130160
+- Fix possible denial of service in resolv gem (CVE-2025-24294)
+- Fix URI Credential Leakage Bypass previous fixes. (CVE-2025-61594)
+- Fix REXML denial of service. (CVE-2025-58767)
+  Resolves: RHEL-122028
+
 * Mon Apr 14 2025 Jarek Prokop <jprokop@redhat.com> - 3.3.8-10
 - Upgrade to Ruby 3.3.8.
   Resolves: RHEL-87342
