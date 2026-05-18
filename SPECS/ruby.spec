@@ -60,7 +60,7 @@
 %global digest_version 3.1.1
 %global drb_version 2.2.0
 %global english_version 0.8.0
-%global erb_version 4.0.3
+%global erb_version 4.0.3.1
 %global error_highlight_version 0.6.0
 %global etc_version 1.4.3
 %global fcntl_version 1.1.0
@@ -173,7 +173,7 @@
 Summary: An interpreter of object-oriented scripting language
 Name: ruby
 Version: %{ruby_version}%{?development_release}
-Release: 11%{?dist}
+Release: 12%{?dist}
 # Licenses, which are likely not included in binary RPMs:
 # Apache-2.0:
 #   benchmark/gc/redblack.rb
@@ -293,6 +293,12 @@ Patch15: ruby-3.4.0-openssl-fix-test-provider-in-fips.patch
 # Fix the tests using SHA-1 Probabilistic Signature Scheme (PSS) parameters.
 # https://github.com/ruby/openssl/pull/879
 Patch16: ruby-3.4.2-openssl-Fix-SHA-1-PSS-tests.patch
+# Fix arbitrary code execution via deserialization bypass in ERB. (CVE-2026-41316)
+# Include the version bump here as that's the only change from 4.0.3 to 4.0.3.1
+# and is expected to be included in next Ruby 3.3.
+# https://github.com/ruby/ruby/commit/a53f3d57d1c70f35534c457de2c471d84a55956a
+# https://github.com/ruby/ruby/commit/2f223e90edf40f5d537760cb26c77b608bddff36
+Patch17: rubygem-erb-4.0.3.1-Fix-arbitrary-code-execution-via-deserialization-bypass-CVE-2026-41316.patch
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 %{?with_rubypick:Suggests: rubypick}
@@ -776,6 +782,7 @@ analysis result in RBS format, a standard type description format for Ruby
 %patch 13 -p1
 %patch 15 -p1
 %patch 16 -p1
+%patch 17 -p1
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -1781,6 +1788,10 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 
 
 %changelog
+* Tue Apr 28 2026 Jarek Prokop <jprokop@redhat.com> - 3.3.10-12
+- Fix arbitrary code execution via deserialization bypass in ERB. (CVE-2026-41316)
+  Resolves: RHEL-171244
+
 * Thu Nov 13 2025 Jun Aruga <jaruga@redhat.com> - 3.3.10-11
 - Upgrade to Ruby 3.3.10.
   Resolves: RHEL-130160
