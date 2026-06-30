@@ -169,7 +169,7 @@
 Summary: An interpreter of object-oriented scripting language
 Name: ruby
 Version: %{ruby_version}%{?development_release}
-Release: 6%{?dist}
+Release: 7%{?dist}
 # Licenses, which are likely not included in binary RPMs:
 # Apache-2.0:
 #   benchmark/gc/redblack.rb
@@ -284,6 +284,24 @@ Patch12: ruby-3.4.0-Extract-hardening-CFLAGS-to-a-special-hardenflags-variable.p
 # https://github.com/ruby/ruby/commit/a53f3d57d1c70f35534c457de2c471d84a55956a
 # https://github.com/ruby/ruby/commit/2f223e90edf40f5d537760cb26c77b608bddff36
 Patch13: rubygem-erb-4.0.3.1-Fix-arbitrary-code-execution-via-deserialization-bypass-CVE-2026-41316.patch
+# Test commits from PR were dropped. The gem does not have tests in the ruby tar.
+# Backported from
+# https://github.com/ruby/net-imap/commit/f46fe38
+# https://github.com/ruby/net-imap/commit/0560d26
+# https://github.com/ruby/net-imap/commit/bfdae21
+Patch14: rubygem-net-imap-0.4.24-DoS-via-crafted-IMAP-responses-CVE-2026-42245.patch
+# Test commits from PR were dropped. The gem does not have tests in the ruby tar.
+# Backported from
+# https://github.com/ruby/net-imap/commit/705aa59
+# https://github.com/ruby/net-imap/commit/038ae35
+Patch15: rubygem-net-imap-0.4.24-Information-disclosure-via-MITM-attack-bypassing-TLS-2026-42246.patch
+# Tests not included, the gem does not have tests in the ruby tar.
+# Original source PR#663 but it bunches more fixes together, so we backport less.
+# https://github.com/ruby/net-imap/pull/663
+# Backported from the following, the first commit below is requirement for the actual fix:
+# https://github.com/ruby/net-imap/commit/1eb27278a601be1135910dae6ab6e517559a2e4a
+# https://github.com/ruby/net-imap/commit/bbd9eb7ecca506fa43b656368f7aebef8ac09182
+Patch16: rubygem-net-imap-0.4.24-Command-Injection-via-Symbol-Arguments-CVE-2026-42258.patch
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 %{?with_rubypick:Suggests: rubypick}
@@ -760,6 +778,12 @@ analysis result in RBS format, a standard type description format for Ruby
 %patch -P 9 -p1
 %patch -P 12 -p1
 %patch -P 13 -p1
+
+pushd .bundle/gems/net-imap-%{net_imap_version}
+%patch -P 14 -p1
+%patch -P 15 -p1
+%patch -P 16 -p1
+popd
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -1776,6 +1800,15 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 
 
 %changelog
+* Thu Jun 11 2026 Jarek Prokop <jprokop@redhat.com> - 3.3.10-7
+- Fix DoS via crafted IMAP responses in net-imap. (CVE-2026-42245)
+  Resolves: RHEL-181682
+- Fix information disclosure via MITM attack bypassing TLS in net-imap.
+  (CVE-2026-42246)
+  Resolves: RHEL-181759
+- Fix command injection via Symbol arguments in net-imap. (CVE-2026-42258)
+  Resolves: RHEL-181791
+
 * Tue Apr 28 2026 Jarek Prokop <jprokop@redhat.com> - 3.3.10-6
 - Fix arbitrary code execution via deserialization bypass in ERB. (CVE-2026-41316)
   Resolves: RHEL-171247
