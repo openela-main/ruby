@@ -1,0 +1,25 @@
+From a267a40be7844224c5f000530bd3e8e906f1acea Mon Sep 17 00:00:00 2001
+From: Jeremy Evans <code@jeremyevans.net>
+Date: Wed, 10 Mar 2021 13:48:00 -0800
+Subject: [PATCH] Do not use a libdir for glibc, it breaks Linux PPC64 (#70)
+
+Fixes [Bug #12666]
+---
+ test/fiddle/helper.rb | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/test/fiddle/helper.rb b/test/fiddle/helper.rb
+index f38f903..a6e2019 100644
+--- a/test/fiddle/helper.rb
++++ b/test/fiddle/helper.rb
+@@ -20,8 +20,8 @@
+     # 64-bit ruby
+     libdir = '/lib64' if File.directory? '/lib64'
+   end
+-  libc_so = File.join(libdir, "libc.so.6")
+-  libm_so = File.join(libdir, "libm.so.6")
++  libc_so = "libc.so.6"
++  libm_so = "libm.so.6"
+ when /mingw/, /mswin/
+   require "rbconfig"
+   crtname = RbConfig::CONFIG["RUBY_SO_NAME"][/msvc\w+/] || 'ucrtbase'

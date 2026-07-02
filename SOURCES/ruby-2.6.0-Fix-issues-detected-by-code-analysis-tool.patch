@@ -1,0 +1,78 @@
+From 893949167bdb911c7db9fd59de85f288c09741e1 Mon Sep 17 00:00:00 2001
+From: nobu <nobu@b2dd03c8-39d4-4d8f-98ff-823fe69b080e>
+Date: Sat, 15 Sep 2018 09:59:14 +0000
+Subject: [PATCH] Fix issues detected by code analysis tool (mainly Coverity).
+
+* Fix leaked storage in addr2line.c.
+* Fix for "top_root" leaking the resource.
+
+[Fix GH-1956]
+
+From: Jun Aruga <jaruga@redhat.com>
+
+git-svn-id: svn+ssh://ci.ruby-lang.org/ruby/trunk@64750 b2dd03c8-39d4-4d8f-98ff-823fe69b080e
+---
+ addr2line.c | 8 ++++++--
+ regcomp.c   | 3 +++
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/addr2line.c b/addr2line.c
+index 2c422cc1697a..b266e44d5d4b 100644
+--- a/addr2line.c
++++ b/addr2line.c
+@@ -593,11 +593,12 @@ fill_lines(int num_traces, void **traces, int check_debuglink,
+ 		h = dlopen(NULL, RTLD_NOW|RTLD_LOCAL);
+ 		if (!h) continue;
+ 		s = dlsym(h, strtab + sym->st_name);
+-		if (!s) continue;
+-		if (dladdr(s, &info)) {
++		if (s && dladdr(s, &info)) {
+ 		    dladdr_fbase = (uintptr_t)info.dli_fbase;
++                    dlclose(h);
+ 		    break;
+ 		}
++                dlclose(h);
+ 	    }
+ 	    if (ehdr->e_type == ET_EXEC) {
+ 		obj->base_addr = 0;
+@@ -655,6 +656,9 @@ fill_lines(int num_traces, void **traces, int check_debuglink,
+ finish:
+     return dladdr_fbase;
+ fail:
++    if (file != NULL) {
++        munmap(file, (size_t)filesize);
++    }
+     return (uintptr_t)-1;
+ }
+ 
+diff --git a/regcomp.c b/regcomp.c
+index 0f6bee60d576..df7f73bac501 100644
+--- a/regcomp.c
++++ b/regcomp.c
+@@ -3596,6 +3596,7 @@ expand_case_fold_string(Node* node, regex_t* reg)
+     if (n == 0 || varlen == 0) {
+       if (IS_NULL(snode)) {
+ 	if (IS_NULL(root) && IS_NOT_NULL(prev_node)) {
++          onig_node_free(top_root);
+ 	  top_root = root = onig_node_list_add(NULL_NODE, prev_node);
+ 	  if (IS_NULL(root)) {
+ 	    onig_node_free(prev_node);
+@@ -3627,6 +3628,7 @@ expand_case_fold_string(Node* node, regex_t* reg)
+ 	}
+       }
+       if (IS_NULL(root) && IS_NOT_NULL(prev_node)) {
++        onig_node_free(top_root);
+ 	top_root = root = onig_node_list_add(NULL_NODE, prev_node);
+ 	if (IS_NULL(root)) {
+ 	  onig_node_free(prev_node);
+@@ -3677,6 +3679,7 @@ expand_case_fold_string(Node* node, regex_t* reg)
+     if (r != 0) goto mem_err;
+ 
+     if (IS_NOT_NULL(prev_node) && IS_NULL(root)) {
++      onig_node_free(top_root);
+       top_root = root = onig_node_list_add(NULL_NODE, prev_node);
+       if (IS_NULL(root)) {
+ 	onig_node_free(srem);
+-- 
+2.21.0
+

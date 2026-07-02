@@ -1,0 +1,214 @@
+From 091459248d3ce814e10d50cc4421f0c0454ef61f Mon Sep 17 00:00:00 2001
+From: "Bernhard M. Wiedemann" <bwiedemann@suse.de>
+Date: Sun, 30 Apr 2017 22:47:40 +0200
+Subject: [PATCH 1/4] created.rid: use SOURCE_DATE_EPOCH
+
+use SOURCE_DATE_EPOCH instead of current time in created.rid top line
+to enable reproducible builds of ruby docs
+
+See https://reproducible-builds.org/ for why this is good
+and https://reproducible-builds.org/specs/source-date-epoch/
+for the definition of this variable.
+---
+ lib/rdoc/rdoc.rb | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/rdoc/rdoc.rb b/lib/rdoc/rdoc.rb
+index 68775c8be1..a2711fbbd1 100644
+--- a/lib/rdoc/rdoc.rb
++++ b/lib/rdoc/rdoc.rb
+@@ -232,6 +232,9 @@ def store= store
+ 
+   def update_output_dir(op_dir, time, last = {})
+     return if @options.dry_run or not @options.update_output_dir
++    unless ENV['SOURCE_DATE_EPOCH'].nil?
++      time = Time.at(ENV['SOURCE_DATE_EPOCH'].to_i).gmtime
++    end
+ 
+     open output_flag_file(op_dir), "w" do |f|
+       f.puts time.rfc2822
+-- 
+2.21.0
+
+From 73a935e9fa63b056ea0be69c0c923afdfb4d88da Mon Sep 17 00:00:00 2001
+From: "Bernhard M. Wiedemann" <bwiedemann@suse.de>
+Date: Thu, 14 Dec 2017 10:54:54 +0100
+Subject: [PATCH 2/4] Do not store current timestamps in gz headers
+
+to enable reproducible builds of rdoc
+
+Normally, 0 would be the preferred value to indicate "no date"
+but that value is handled differently in Zlib::GzipWriter
+to put in the current time
+---
+ lib/rdoc/generator/json_index.rb | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/rdoc/generator/json_index.rb b/lib/rdoc/generator/json_index.rb
+index e4cfe967c6..a059a5d4d0 100644
+--- a/lib/rdoc/generator/json_index.rb
++++ b/lib/rdoc/generator/json_index.rb
+@@ -175,7 +175,7 @@ def generate_gzipped
+     debug_msg "Writing gzipped search index to %s" % outfile
+ 
+     Zlib::GzipWriter.open(outfile) do |gz|
+-      gz.mtime = File.mtime(search_index_file)
++      gz.mtime = 1 # make output reproducible
+       gz.orig_name = search_index_file.basename.to_s
+       gz.write search_index
+       gz.close
+@@ -193,7 +193,7 @@ def generate_gzipped
+         debug_msg "Writing gzipped file to %s" % outfile
+ 
+         Zlib::GzipWriter.open(outfile) do |gz|
+-          gz.mtime = File.mtime(dest)
++          gz.mtime = 1 # make output reproducible
+           gz.orig_name = dest.basename.to_s
+           gz.write data
+           gz.close
+-- 
+2.21.0
+
+From 1b34b337b72918e83c3b952eed6998ad47974960 Mon Sep 17 00:00:00 2001
+From: aycabta <aycabta@gmail.com>
+Date: Sat, 27 Jan 2018 14:37:42 +0900
+Subject: [PATCH 3/4] Improve reproducible builds for .js and .js.gz files
+
+The mtime for search_index.js.gz should be updated because it's
+generated dynamically. So uses SOURCE_DATE_EPOCH after
+RDoc::Generator::JsonIndex#generate creates index file.
+
+FileUtils.install in RDoc::Generator::JsonIndex#generate with :preserve
+option because the mtime value is based on original .js file.
+---
+ lib/rdoc/generator/json_index.rb            |  9 +++++---
+ test/rdoc/test_rdoc_generator_json_index.rb | 25 ++++++++++++++++++++-
+ 2 files changed, 30 insertions(+), 4 deletions(-)
+
+diff --git a/lib/rdoc/generator/json_index.rb b/lib/rdoc/generator/json_index.rb
+index a059a5d4d0..3a1000033d 100644
+--- a/lib/rdoc/generator/json_index.rb
++++ b/lib/rdoc/generator/json_index.rb
+@@ -147,12 +147,15 @@ def generate
+ 
+       JSON.dump data, io, 0
+     end
++    unless ENV['SOURCE_DATE_EPOCH'].nil?
++      index_file.utime index_file.atime, Time.at(ENV['SOURCE_DATE_EPOCH'].to_i).gmtime
++    end
+ 
+     Dir.chdir @template_dir do
+       Dir['**/*.js'].each do |source|
+         dest = File.join out_dir, source
+ 
+-        FileUtils.install source, dest, :mode => 0644, :verbose => $DEBUG_RDOC
++        FileUtils.install source, dest, :mode => 0644, :preserve => true, :verbose => $DEBUG_RDOC
+       end
+     end
+   end
+@@ -175,7 +178,7 @@ def generate_gzipped
+     debug_msg "Writing gzipped search index to %s" % outfile
+ 
+     Zlib::GzipWriter.open(outfile) do |gz|
+-      gz.mtime = 1 # make output reproducible
++      gz.mtime = File.mtime(search_index_file)
+       gz.orig_name = search_index_file.basename.to_s
+       gz.write search_index
+       gz.close
+@@ -193,7 +196,7 @@ def generate_gzipped
+         debug_msg "Writing gzipped file to %s" % outfile
+ 
+         Zlib::GzipWriter.open(outfile) do |gz|
+-          gz.mtime = 1 # make output reproducible
++          gz.mtime = File.mtime(dest)
+           gz.orig_name = dest.basename.to_s
+           gz.write data
+           gz.close
+diff --git a/test/rdoc/test_rdoc_generator_json_index.rb b/test/rdoc/test_rdoc_generator_json_index.rb
+index 6cb5463d29..65e7f087cc 100644
+--- a/test/rdoc/test_rdoc_generator_json_index.rb
++++ b/test/rdoc/test_rdoc_generator_json_index.rb
+@@ -8,7 +8,7 @@ class TestRDocGeneratorJsonIndex < RDoc::TestCase
+   def setup
+     super
+ 
+-    @tmpdir = File.join Dir.tmpdir, "test_rdoc_generator_darkfish_#{$$}"
++    @tmpdir = Dir.mktmpdir "test_rdoc_generator_darkfish_#{$$}_"
+     FileUtils.mkdir_p @tmpdir
+ 
+     @options = RDoc::Options.new
+@@ -89,12 +89,21 @@ def test_file_dir
+   end
+ 
+   def test_generate
++    now = Time.now
+     @g.generate
+ 
+     assert_file 'js/searcher.js'
+     assert_file 'js/navigation.js'
+     assert_file 'js/search_index.js'
+ 
++    orig_file = Pathname(File.join @pwd, 'lib/rdoc/generator/template/json_index/js/navigation.js')
++    generated_file = Pathname(File.join @tmpdir, 'js/navigation.js')
++    assert_equal orig_file.mtime, generated_file.mtime
++    assert generated_file.mtime < now, '.js files should be the same timestamp'
++
++    generated_search_index = Pathname(File.join @tmpdir, 'js/search_index.js')
++    assert generated_search_index.mtime > (now - 1), 'search_index.js should be generated timestamp'
++
+     json = File.read 'js/search_index.js'
+ 
+     json =~ /\Avar search_data = /
+@@ -137,6 +146,20 @@ def test_generate
+     assert_equal expected, index
+   end
+ 
++  def test_generate_search_index_with_reproducible_builds
++    backup_epoch = ENV['SOURCE_DATE_EPOCH']
++    ruby_birthday = Time.parse 'Wed, 24 Feb 1993 21:00:00 +0900'
++    ENV['SOURCE_DATE_EPOCH'] = ruby_birthday.to_i.to_s
++
++    @g.generate
++
++    assert_file 'js/search_index.js'
++    generated_search_index = Pathname(File.join @tmpdir, 'js/search_index.js')
++    assert_equal ruby_birthday, generated_search_index.mtime
++
++    ENV['SOURCE_DATE_EPOCH'] = backup_epoch
++  end
++
+   def test_generate_gzipped
+     begin
+       require 'zlib'
+-- 
+2.21.0
+
+From 74c1e201f2146e7175e74d6fc0b9386c2e95210f Mon Sep 17 00:00:00 2001
+From: aycabta <aycabta@gmail.com>
+Date: Sat, 27 Jan 2018 17:54:31 +0900
+Subject: [PATCH 4/4] Use dirty hack on JRuby for MiniTest 4
+
+---
+ test/rdoc/test_rdoc_generator_json_index.rb | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/test/rdoc/test_rdoc_generator_json_index.rb b/test/rdoc/test_rdoc_generator_json_index.rb
+index 65e7f087cc..714d496195 100644
+--- a/test/rdoc/test_rdoc_generator_json_index.rb
++++ b/test/rdoc/test_rdoc_generator_json_index.rb
+@@ -98,7 +98,11 @@ def test_generate
+ 
+     orig_file = Pathname(File.join @pwd, 'lib/rdoc/generator/template/json_index/js/navigation.js')
+     generated_file = Pathname(File.join @tmpdir, 'js/navigation.js')
+-    assert_equal orig_file.mtime, generated_file.mtime
++
++    # This is dirty hack on JRuby for MiniTest 4
++    assert orig_file.mtime.inspect == generated_file.mtime.inspect,
++      '.js files should be tha same timestamp of original'
++
+     assert generated_file.mtime < now, '.js files should be the same timestamp'
+ 
+     generated_search_index = Pathname(File.join @tmpdir, 'js/search_index.js')
+-- 
+2.21.0
+

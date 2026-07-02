@@ -1,0 +1,69 @@
+From 9d98bfe7f1abdeda5aedf9404588104980ee7a86 Mon Sep 17 00:00:00 2001
+From: aycabta <aycabta@gmail.com>
+Date: Mon, 15 Jan 2018 22:32:56 +0900
+Subject: [PATCH] Check nil text token
+
+Sometimes :on_ignored_nl token has nil text. This commit checks and
+bypasses the token.
+---
+ lib/rdoc/parser/ripper_state_lex.rb |  4 +++-
+ test/test_rdoc_parser_ruby.rb       | 30 +++++++++++++++++++++++++++++
+ 2 files changed, 33 insertions(+), 1 deletion(-)
+
+diff --git a/lib/rdoc/parser/ripper_state_lex.rb b/lib/rdoc/parser/ripper_state_lex.rb
+index 2a285b97a4..c56cef46ee 100644
+--- a/lib/rdoc/parser/ripper_state_lex.rb
++++ b/lib/rdoc/parser/ripper_state_lex.rb
+@@ -330,8 +330,10 @@ class RDoc::RipperStateLex
+       @heredoc_queue << retrieve_heredoc_info(tk)
+       @inner_lex.lex_state = EXPR_END unless RIPPER_HAS_LEX_STATE
+     when :on_nl, :on_ignored_nl, :on_comment, :on_heredoc_end then
+-      unless @heredoc_queue.empty?
++      if !@heredoc_queue.empty?
+         get_heredoc_tk(*@heredoc_queue.shift)
++      elsif tk[:text].nil? # :on_ignored_nl sometimes gives nil
++        tk[:text] = ''
+       end
+     when :on_words_beg then
+       tk = get_words_tk(tk)
+diff --git a/test/rdoc/test_rdoc_parser_ruby.rb b/test/rdoc/test_rdoc_parser_ruby.rb
+index 833ed2cc74..c9d57021ce 100644
+--- a/test/rdoc/test_rdoc_parser_ruby.rb
++++ b/test/rdoc/test_rdoc_parser_ruby.rb
+@@ -306,6 +306,36 @@ def sum(n)
+     assert_equal @top_level, sum.file
+   end
+
++  def test_parse_on_ignored_nl_with_nil_text
++    util_parser <<ruby
++class Foo
++  def meth
++    variable # comment
++      .chain
++  end
++end
++ruby
++
++    expected = <<EXPECTED
++<span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">meth</span>
++  <span class="ruby-identifier">variable</span> <span class="ruby-comment"># comment</span>
++    .<span class="ruby-identifier">chain</span>
++<span class="ruby-keyword">end</span>
++EXPECTED
++    expected = expected.rstrip
++
++    @parser.scan
++
++    foo = @store.find_class_named 'Foo'
++    meth = foo.method_list.first
++
++    assert_equal 'meth',     meth.name
++    assert_equal @top_level, meth.file
++
++    markup_code = meth.markup_code.sub(/^.*\n/, '')
++    assert_equal expected, markup_code
++  end
++
+   def test_parse_alias
+     klass = RDoc::NormalClass.new 'Foo'
+     klass.parent = @top_level

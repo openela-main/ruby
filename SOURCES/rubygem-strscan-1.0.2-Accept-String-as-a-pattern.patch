@@ -1,0 +1,264 @@
+From e56ac27d19cc3acdf6c1cb13b14224c43df5f5f6 Mon Sep 17 00:00:00 2001
+From: Kouhei Sutou <kou@clear-code.com>
+Date: Thu, 4 Apr 2019 17:52:50 +0900
+Subject: [PATCH] Accept String as a pattern
+
+It's only for head only match case such as StringScanner#scan.
+
+If we use a String as a pattern, we can improve match performance.
+Here is a result of the including benchmark. It shows String as a
+pattern is 1.25x faster than Regexp as a pattern.
+
+    % rake benchmark
+    /tmp/local/bin/ruby -S benchmark-driver benchmark/scan.yaml
+    Warming up --------------------------------------
+                  regexp    12.094M i/s -     12.242M times in 1.012250s (82.69ns/i, 277clocks/i)
+                  string    14.653M i/s -     14.889M times in 1.016124s (68.25ns/i, 252clocks/i)
+    Calculating -------------------------------------
+                  regexp    14.713M i/s -     36.281M times in 2.465970s (67.97ns/i, 254clocks/i)
+                  string    18.422M i/s -     43.959M times in 2.386255s (54.28ns/i, 201clocks/i)
+
+    Comparison:
+                  string:  18421631.8 i/s
+                  regexp:  14712660.7 i/s - 1.25x  slower
+
+====
+Backport https://github.com/ruby/strscan/pull/4 for strscan.
+
+REXML fixes for CVE-2024-35716 depend on this feature.
+---
+ ext/strscan/strscan.c              | 92 +++++++++++++++++++-----------
+ test/strscan/test_stringscanner.rb | 45 ++++++++++++++-
+ 2 files changed, 100 insertions(+), 37 deletions(-)
+
+diff --git a/ext/strscan/strscan.c b/ext/strscan/strscan.c
+index d6168a0d4f..43319b672e 100644
+--- a/ext/strscan/strscan.c
++++ b/ext/strscan/strscan.c
+@@ -447,15 +447,18 @@ strscan_set_pos(VALUE self, VALUE v)
+ }
+ 
+ static VALUE
+-strscan_do_scan(VALUE self, VALUE regex, int succptr, int getstr, int headonly)
++strscan_do_scan(VALUE self, VALUE pattern, int succptr, int getstr, int headonly)
+ {
+-    regex_t *rb_reg_prepare_re(VALUE re, VALUE str);
+     struct strscanner *p;
+-    regex_t *re;
+-    long ret;
+-    int tmpreg;
+ 
+-    Check_Type(regex, T_REGEXP);
++    if (headonly) {
++        if (!RB_TYPE_P(pattern, T_REGEXP)) {
++            StringValue(pattern);
++        }
++    }
++    else {
++        Check_Type(pattern, T_REGEXP);
++    }
+     GET_SCANNER(self, p);
+ 
+     CLEAR_MATCH_STATUS(p);
+@@ -463,37 +466,55 @@ strscan_do_scan(VALUE self, VALUE regex, int succptr, int getstr, int headonly)
+         return Qnil;
+     }
+ 
+-    p->regex = regex;
+-    re = rb_reg_prepare_re(regex, p->str);
+-    tmpreg = re != RREGEXP_PTR(regex);
+-    if (!tmpreg) RREGEXP(regex)->usecnt++;
++    if (RB_TYPE_P(pattern, T_REGEXP)) {
++        regex_t *rb_reg_prepare_re(VALUE re, VALUE str);
++        regex_t *re;
++        long ret;
++        int tmpreg;
++
++        p->regex = pattern;
++        re = rb_reg_prepare_re(pattern, p->str);
++        tmpreg = re != RREGEXP_PTR(pattern);
++        if (!tmpreg) RREGEXP(pattern)->usecnt++;
++
++        if (headonly) {
++            ret = onig_match(re, (UChar* )CURPTR(p),
++                             (UChar* )(CURPTR(p) + S_RESTLEN(p)),
++                             (UChar* )CURPTR(p), &(p->regs), ONIG_OPTION_NONE);
++        }
++        else {
++            ret = onig_search(re,
++                              (UChar* )CURPTR(p), (UChar* )(CURPTR(p) + S_RESTLEN(p)),
++                              (UChar* )CURPTR(p), (UChar* )(CURPTR(p) + S_RESTLEN(p)),
++                              &(p->regs), ONIG_OPTION_NONE);
++        }
++        if (!tmpreg) RREGEXP(pattern)->usecnt--;
++        if (tmpreg) {
++            if (RREGEXP(pattern)->usecnt) {
++                onig_free(re);
++            }
++            else {
++                onig_free(RREGEXP_PTR(pattern));
++                RREGEXP_PTR(pattern) = re;
++            }
++        }
+ 
+-    if (headonly) {
+-        ret = onig_match(re, (UChar* )CURPTR(p),
+-                         (UChar* )(CURPTR(p) + S_RESTLEN(p)),
+-                         (UChar* )CURPTR(p), &(p->regs), ONIG_OPTION_NONE);
++        if (ret == -2) rb_raise(ScanError, "regexp buffer overflow");
++        if (ret < 0) {
++            /* not matched */
++            return Qnil;
++        }
+     }
+     else {
+-        ret = onig_search(re,
+-                          (UChar* )CURPTR(p), (UChar* )(CURPTR(p) + S_RESTLEN(p)),
+-                          (UChar* )CURPTR(p), (UChar* )(CURPTR(p) + S_RESTLEN(p)),
+-                          &(p->regs), ONIG_OPTION_NONE);
+-    }
+-    if (!tmpreg) RREGEXP(regex)->usecnt--;
+-    if (tmpreg) {
+-        if (RREGEXP(regex)->usecnt) {
+-            onig_free(re);
++        rb_enc_check(p->str, pattern);
++        if (S_RESTLEN(p) < RSTRING_LEN(pattern)) {
++            return Qnil;
+         }
+-        else {
+-            onig_free(RREGEXP_PTR(regex));
+-            RREGEXP_PTR(regex) = re;
++        if (memcmp(CURPTR(p), RSTRING_PTR(pattern), RSTRING_LEN(pattern)) != 0) {
++            return Qnil;
+         }
+-    }
+-
+-    if (ret == -2) rb_raise(ScanError, "regexp buffer overflow");
+-    if (ret < 0) {
+-        /* not matched */
+-        return Qnil;
++        onig_region_clear(&(p->regs));
++        onig_region_set(&(p->regs), 0, 0, RSTRING_LEN(pattern));
+     }
+ 
+     MATCHED(p);
+@@ -520,7 +541,8 @@ strscan_do_scan(VALUE self, VALUE regex, int succptr, int getstr, int headonly)
+  *   p s.scan(/\w+/)   # -> "test"
+  *   p s.scan(/\w+/)   # -> nil
+  *   p s.scan(/\s+/)   # -> " "
+- *   p s.scan(/\w+/)   # -> "string"
++ *   p s.scan("str")   # -> "str"
++ *   p s.scan(/\w+/)   # -> "ing"
+  *   p s.scan(/./)     # -> nil
+  *
+  */
+@@ -539,6 +561,7 @@ strscan_scan(VALUE self, VALUE re)
+  *   s = StringScanner.new('test string')
+  *   p s.match?(/\w+/)   # -> 4
+  *   p s.match?(/\w+/)   # -> 4
++ *   p s.match?("test")  # -> 4
+  *   p s.match?(/\s+/)   # -> nil
+  */
+ static VALUE
+@@ -560,7 +583,8 @@ strscan_match_p(VALUE self, VALUE re)
+  *   p s.skip(/\w+/)   # -> 4
+  *   p s.skip(/\w+/)   # -> nil
+  *   p s.skip(/\s+/)   # -> 1
+- *   p s.skip(/\w+/)   # -> 6
++ *   p s.skip("st")    # -> 2
++ *   p s.skip(/\w+/)   # -> 4
+  *   p s.skip(/./)     # -> nil
+  *
+  */
+diff --git a/test/strscan/test_stringscanner.rb b/test/strscan/test_stringscanner.rb
+index 3423f9cfed..63b1ce1f9b 100644
+--- a/test/strscan/test_stringscanner.rb
++++ b/test/strscan/test_stringscanner.rb
+@@ -282,6 +282,22 @@ def test_scan
+     assert_equal "", s.scan(//)
+   end
+ 
++  def test_scan_string
++    s = StringScanner.new('stra strb strc')
++    assert_equal 'str', s.scan('str')
++    assert_equal 'str', s[0]
++    assert_equal 3, s.pos
++    assert_equal false, s.tainted?
++    assert_equal 'a ', s.scan('a ')
++
++    str = 'stra strb strc'.dup
++    str.taint
++    s = StringScanner.new(str, false)
++    matched = s.scan('str')
++    assert_equal 'str', matched
++    assert_equal true, matched.tainted?
++  end
++
+   def test_skip
+     s = StringScanner.new('stra strb strc', true)
+     assert_equal 4, s.skip(/\w+/)
+@@ -367,8 +383,10 @@ def test_matched
+     assert_equal false, s.matched.tainted?
+     s.scan(/\s+/)
+     assert_equal ' ', s.matched
++    s.scan('st')
++    assert_equal 'st', s.matched
+     s.scan(/\w+/)
+-    assert_equal 'strb', s.matched
++    assert_equal 'rb', s.matched
+     s.scan(/\s+/)
+     assert_equal ' ', s.matched
+     s.scan(/\w+/)
+@@ -483,7 +501,7 @@ def test_pre_match
+     s.skip(/\s/)
+     assert_equal 'a', s.pre_match
+     assert_equal false, s.pre_match.tainted?
+-    s.scan(/\w/)
++    s.scan('b')
+     assert_equal 'a ', s.pre_match
+     s.scan_until(/c/)
+     assert_equal 'a b ', s.pre_match
+@@ -513,7 +531,7 @@ def test_post_match
+     assert_equal ' b c d e', s.post_match
+     s.skip(/\s/)
+     assert_equal 'b c d e', s.post_match
+-    s.scan(/\w/)
++    s.scan('b')
+     assert_equal ' c d e', s.post_match
+     s.scan_until(/c/)
+     assert_equal ' d e', s.post_match
+@@ -589,6 +607,20 @@ def test_encoding
+     assert_equal(Encoding::EUC_JP, ss.scan(/./e).encoding)
+   end
+ 
++  def test_encoding_string
++    str = "\xA1\xA2".dup.force_encoding("euc-jp")
++    ss = StringScanner.new(str)
++    assert_equal(str.dup, ss.scan(str.dup))
++  end
++
++  def test_invalid_encoding_string
++    str = "\xA1\xA2".dup.force_encoding("euc-jp")
++    ss = StringScanner.new(str)
++    assert_raise(Encoding::CompatibilityError) do
++      ss.scan(str.encode("UTF-8"))
++    end
++  end
++
+   def test_generic_regexp
+     ss = StringScanner.new("\xA1\xA2".dup.force_encoding("euc-jp"))
+     t = ss.scan(/./)
+@@ -643,6 +675,13 @@ def test_exist_p
+     assert_equal(nil, s.exist?(/e/))
+   end
+ 
++  def test_exist_p_string
++    s = StringScanner.new("test string")
++    assert_raise(TypeError) do
++      s.exist?(" ")
++    end
++  end
++
+   def test_skip_until
+     s = StringScanner.new("Foo Bar Baz")
+     assert_equal(3, s.skip_until(/Foo/))

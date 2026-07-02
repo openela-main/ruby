@@ -1,0 +1,42 @@
+From e2c0652dff671dc6e16a80887e781edc0abc8454 Mon Sep 17 00:00:00 2001
+From: usa <usa@b2dd03c8-39d4-4d8f-98ff-823fe69b080e>
+Date: Wed, 24 Nov 2021 11:41:55 +0000
+Subject: [PATCH 2/2] When parsing cookies, only decode the values
+
+git-svn-id: svn+ssh://ci.ruby-lang.org/ruby/branches/ruby_2_6@67953 b2dd03c8-39d4-4d8f-98ff-823fe69b080e
+---
+ lib/cgi/cookie.rb           | 1 -
+ test/cgi/test_cgi_cookie.rb | 5 +++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/lib/cgi/cookie.rb b/lib/cgi/cookie.rb
+index a2155edb77..009566bb92 100644
+--- a/lib/cgi/cookie.rb
++++ b/lib/cgi/cookie.rb
+@@ -165,7 +165,6 @@ def self.parse(raw_cookie)
+       raw_cookie.split(/;\s?/).each do |pairs|
+         name, values = pairs.split('=',2)
+         next unless name and values
+-        name = CGI.unescape(name)
+         values ||= ""
+         values = values.split('&').collect{|v| CGI.unescape(v,@@accept_charset) }
+         if cookies.has_key?(name)
+diff --git a/test/cgi/test_cgi_cookie.rb b/test/cgi/test_cgi_cookie.rb
+index 115a57e4a1..985cc0d7a1 100644
+--- a/test/cgi/test_cgi_cookie.rb
++++ b/test/cgi/test_cgi_cookie.rb
+@@ -101,6 +101,11 @@ def test_cgi_cookie_parse
+     end
+   end
+ 
++  def test_cgi_cookie_parse_not_decode_name
++    cookie_str = "%66oo=baz;foo=bar"
++    cookies = CGI::Cookie.parse(cookie_str)
++    assert_equal({"%66oo" => ["baz"], "foo" => ["bar"]}, cookies)
++  end
+ 
+   def test_cgi_cookie_arrayinterface
+     cookie = CGI::Cookie.new('name1', 'a', 'b', 'c')
+-- 
+2.36.1
+
