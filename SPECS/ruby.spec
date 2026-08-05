@@ -1,6 +1,6 @@
 %global major_version 4
 %global minor_version 0
-%global teeny_version 3
+%global teeny_version 6
 %global major_minor_version %{major_version}.%{minor_version}
 
 %global ruby_version %{major_minor_version}.%{teeny_version}
@@ -36,7 +36,7 @@
 ## BUNDLED_GEMS_VERSIONS
 
 # Bundled libraries versions
-%global rubygems_version 4.0.6
+%global rubygems_version 4.0.16
 %global rubygems_molinillo_version 0.8.0
 %global rubygems_net_http_version 0.7.0
 %global rubygems_net_protocol_version 0.2.2
@@ -48,14 +48,13 @@
 %global rubygems_uri_version 1.1.1
 
 # Default gems.
-%global bundler_version 4.0.6
+%global bundler_version 4.0.16
 %global bundler_connection_pool_version 2.5.4
 %global bundler_fileutils_version 1.8.0
 %global bundler_net_http_persistent_version 4.0.6
 %global bundler_pub_grub_version 0.5.0
 %global bundler_securerandom_version 0.4.1
 %global bundler_thor_version 1.4.0
-%global bundler_tsort_version 0.2.0
 %global bundler_uri_version 1.1.1
 
 %global date_version 3.5.1
@@ -64,7 +63,7 @@
 %global digest_version 3.2.1
 %global english_version 0.8.1
 %global erb_version 6.0.1.1
-%global error_highlight_version 0.7.1
+%global error_highlight_version 0.7.2
 %global etc_version 1.4.6
 %global fcntl_version 1.3.0
 %global fileutils_version 1.8.0
@@ -79,7 +78,7 @@
 %global net_protocol_version 0.2.2
 %global open_uri_version 0.5.0
 %global open3_version 0.2.1
-%global openssl_version 4.0.0
+%global openssl_version 4.0.2
 %global optparse_version 0.8.1
 %global pp_version 0.6.3
 %global prettyprint_version 0.2.0
@@ -121,7 +120,7 @@
 %global minitest_version 6.0.0
 %global mutex_m_version 0.3.0
 %global net_ftp_version 0.3.9
-%global net_imap_version 0.6.2
+%global net_imap_version 0.6.4.1
 %global net_pop_version 0.1.2
 %global net_smtp_version 0.5.1
 %global nkf_version 0.2.0
@@ -133,7 +132,7 @@
 %global racc_version 1.8.1
 %global rake_version 13.3.1
 %global rbs_version 3.10.0
-%global rdoc_version 7.0.3
+%global rdoc_version 7.0.4
 %global readline_version 0.0.4
 %global reline_version 0.6.3
 %global repl_type_completor_version 0.1.12
@@ -186,7 +185,7 @@
 Summary: An interpreter of object-oriented scripting language
 Name: ruby
 Version: %{ruby_version}%{?development_release}
-Release: 33%{?dist}
+Release: 34%{?dist}
 # Licenses, which are likely not included in binary RPMs:
 # Apache-2.0:
 #   benchmark/gc/redblack.rb
@@ -299,24 +298,6 @@ Patch9: rdoc-pr1531-fix-mutilple-document-installation.patch
 # in Ruby JSON
 # https://github.com/ruby/json/commit/393b41c3e5f87491e1e34fa59fa78ff6fa179a74
 Patch10: ruby-4.0.3-Fix-a-format-string-injection-vulnerability.patch
-# CVE-2026-42245
-# Net::IMAP ResponseReader quadratic complexity vulnerability
-# Sourced from:
-#  - https://github.com/ruby/net-imap/commit/341ab628
-#  - https://github.com/ruby/net-imap/commit/49c516d6
-#  - https://github.com/ruby/net-imap/commit/6f82e28f
-Patch11: rubygem-net-imap-0.6.2-ResponseReader-quadratic-complexity-CVE-2026-42245.patch
-# CVE-2026-42246
-# Net::IMAP STARTTLS stripping vulnerability
-# Sourced from:
-#   - https://github.com/ruby/net-imap/commit/62eea6ff
-#   - https://github.com/ruby/net-imap/commit/24d5c773
-Patch12: rubygem-net-imap-0.6.2-STARTTLS-stripping-vulnerability-CVE-2026-42246.patch
-# CVE-2026-42258
-# Net::IMAP command injection vulnerability via unvalidated Symbol arguments
-# Sourced from:
-#   - https://github.com/ruby/net-imap/commit/9db3e9d
-Patch13: rubygem-net-imap-0.6.2-flag-symbol-validation-CVE-2026-42258.patch
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 %{?with_rubypick:Suggests: rubypick}
@@ -626,7 +607,6 @@ Provides:   bundled(rubygem-net-http-persistent) = %{bundler_net_http_persistent
 Provides:   bundled(rubygem-pub_grub) = %{bundler_pub_grub_version}
 Provides:   bundled(rubygem-securerandom) = %{bundler_securerandom_version}
 Provides:   bundled(rubygem-thor) = %{bundler_thor_version}
-Provides:   bundled(rubygem-tsort) = %{bundler_tsort_version}
 Provides:   bundled(rubygem-uri) = %{bundler_uri_version}
 BuildArch:  noarch
 
@@ -834,12 +814,6 @@ popd
 %patch -P 7 -p1
 %patch -P 8 -p1
 %patch -P 10 -p1
-
-pushd .bundle/gems/net-imap-%{net_imap_version}
-%patch -P 11 -p1
-%patch -P 12 -p1
-%patch -P 13 -p1
-popd
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -1185,15 +1159,6 @@ make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
   puts '%%{bundler_thor_version}: %{bundler_thor_version}'; \
   puts %Q[Bundler::Thor::VERSION: #{Bundler::Thor::VERSION}]; \
   exit 1 if Bundler::Thor::VERSION != '%{bundler_thor_version}'; \
-\""
-
-# TSort
-make -C %{_vpath_builddir} -s runruby TESTRUN_SCRIPT="-e \" \
-  module Bundler; end; \
-  require 'bundler/vendor/tsort/lib/tsort'; \
-  puts '%%{bundler_tsort_version}: %{bundler_tsort_version}'; \
-  puts %Q[Bundler::TSort::VERSION: #{Bundler::TSort::VERSION}]; \
-  exit 1 if Bundler::TSort::VERSION != '%{bundler_tsort_version}'; \
 \""
 
 # URI.
@@ -1999,6 +1964,11 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 
 
 %changelog
+* Thu Jul 23 2026 Jarek Prokop <jprokop@redhat.com> - 4.0.6-34
+- Upgrade to Ruby 4.0.6.
+  Resolves: RHEL-211301
+  Resolves: RHEL-193663
+
 * Wed Jun 10 2026 Tomas Juhasz <tjuhasz@redhat.com> - 4.0.3-33
 - Fix Net::IMAP ResponseReader quadratic complexity vulnerability. (CVE-2026-42245)
   Resolves: RHEL-181690
