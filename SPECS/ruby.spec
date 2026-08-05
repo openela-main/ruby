@@ -1,6 +1,6 @@
 %global major_version 3
 %global minor_version 3
-%global teeny_version 10
+%global teeny_version 12
 %global major_minor_version %{major_version}.%{minor_version}
 
 %global ruby_version %{major_minor_version}.%{teeny_version}
@@ -36,7 +36,7 @@
 %global rubygems_securerandom_version 0.3.1
 %global rubygems_timeout_version 0.4.1
 %global rubygems_tsort_version 0.2.0
-%global rubygems_uri_version 0.13.1
+%global rubygems_uri_version 0.13.3
 
 # Default gems.
 %global bundler_version 2.5.22
@@ -47,7 +47,7 @@
 %global bundler_securerandom_version 0.3.1
 %global bundler_thor_version 1.3.0
 %global bundler_tsort_version 0.2.0
-%global bundler_uri_version 0.13.1
+%global bundler_uri_version 0.13.3
 
 %global abbrev_version 0.1.2
 %global base64_version 0.2.0
@@ -79,14 +79,14 @@
 %global nkf_version 0.1.3
 %global observer_version 0.1.2
 %global open3_version 0.2.1
-%global openssl_version 3.2.2
+%global openssl_version 3.2.4
 %global open_uri_version 0.4.1
 %global optparse_version 0.4.0
 %global ostruct_version 0.6.0
 %global pathname_version 0.3.0
 %global pp_version 0.5.0
 %global prettyprint_version 0.2.0
-%global pstore_version 0.1.3
+%global pstore_version 0.2.1
 %global readline_version 0.0.4
 %global reline_version 0.5.10
 %global resolv_version 0.3.1
@@ -99,7 +99,7 @@
 %global singleton_version 0.2.0
 %global stringio_version 3.1.1
 %global strscan_version 3.0.9
-%global syntax_suggest_version 2.0.1
+%global syntax_suggest_version 2.0.3
 %global syslog_version 0.1.2
 %global tempfile_version 0.2.1
 %global time_version 0.3.0
@@ -112,7 +112,7 @@
 %global win32ole_version 1.8.10
 %global yaml_version 0.3.0
 %global prism_version 0.19.0
-%global zlib_version 3.1.1
+%global zlib_version 3.1.2
 
 # Gemified default gems.
 %global bigdecimal_version 3.1.5
@@ -125,7 +125,7 @@
 # Bundled gems.
 %global debug_version 1.9.2
 %global net_ftp_version 0.3.4
-%global net_imap_version 0.4.21
+%global net_imap_version 0.4.25
 %global net_pop_version 0.1.2
 %global net_smtp_version 0.5.1
 %global matrix_version 0.4.2
@@ -169,7 +169,7 @@
 Summary: An interpreter of object-oriented scripting language
 Name: ruby
 Version: %{ruby_version}%{?development_release}
-Release: 7%{?dist}
+Release: 8%{?dist}
 # Licenses, which are likely not included in binary RPMs:
 # Apache-2.0:
 #   benchmark/gc/redblack.rb
@@ -278,30 +278,10 @@ Patch9: ruby-3.3.0-Disable-syntax-suggest-test-case.patch
 # Make sure hardeding flags are correctly applied.
 # https://bugs.ruby-lang.org/issues/20520
 Patch12: ruby-3.4.0-Extract-hardening-CFLAGS-to-a-special-hardenflags-variable.patch
-# Fix arbitrary code execution via deserialization bypass in ERB. (CVE-2026-41316)
-# Include the version bump here as that's the only change from 4.0.3 to 4.0.3.1
-# and is expected to be included in next Ruby 3.3.
-# https://github.com/ruby/ruby/commit/a53f3d57d1c70f35534c457de2c471d84a55956a
-# https://github.com/ruby/ruby/commit/2f223e90edf40f5d537760cb26c77b608bddff36
-Patch13: rubygem-erb-4.0.3.1-Fix-arbitrary-code-execution-via-deserialization-bypass-CVE-2026-41316.patch
-# Test commits from PR were dropped. The gem does not have tests in the ruby tar.
-# Backported from
-# https://github.com/ruby/net-imap/commit/f46fe38
-# https://github.com/ruby/net-imap/commit/0560d26
-# https://github.com/ruby/net-imap/commit/bfdae21
-Patch14: rubygem-net-imap-0.4.24-DoS-via-crafted-IMAP-responses-CVE-2026-42245.patch
-# Test commits from PR were dropped. The gem does not have tests in the ruby tar.
-# Backported from
-# https://github.com/ruby/net-imap/commit/705aa59
-# https://github.com/ruby/net-imap/commit/038ae35
-Patch15: rubygem-net-imap-0.4.24-Information-disclosure-via-MITM-attack-bypassing-TLS-2026-42246.patch
-# Tests not included, the gem does not have tests in the ruby tar.
-# Original source PR#663 but it bunches more fixes together, so we backport less.
-# https://github.com/ruby/net-imap/pull/663
-# Backported from the following, the first commit below is requirement for the actual fix:
-# https://github.com/ruby/net-imap/commit/1eb27278a601be1135910dae6ab6e517559a2e4a
-# https://github.com/ruby/net-imap/commit/bbd9eb7ecca506fa43b656368f7aebef8ac09182
-Patch16: rubygem-net-imap-0.4.24-Command-Injection-via-Symbol-Arguments-CVE-2026-42258.patch
+# Workaround for a weird failure that happens only during mockbuild of Ruby src.rpm
+# Cannot reproduce sufficiently so far for the issue to appear outside that environment.
+# See patch's commit message for more information.
+Patch13: ruby-3.3.12-Allow-up-to-1-send-from-exits-YJIT-stat-for-proc-tes.patch
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 %{?with_rubypick:Suggests: rubypick}
@@ -778,12 +758,6 @@ analysis result in RBS format, a standard type description format for Ruby
 %patch -P 9 -p1
 %patch -P 12 -p1
 %patch -P 13 -p1
-
-pushd .bundle/gems/net-imap-%{net_imap_version}
-%patch -P 14 -p1
-%patch -P 15 -p1
-%patch -P 16 -p1
-popd
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -1568,7 +1542,6 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 
 %files doc -f .ruby-doc.en -f .ruby-doc.ja
 %doc README.md
-%doc ChangeLog
 %{?with_systemtap:%doc ruby-exercise.stp}
 %{_datadir}/ri
 
@@ -1800,6 +1773,11 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 
 
 %changelog
+* Thu Jul 23 2026 Jarek Prokop <jprokop@redhat.com> - 3.3.12-8
+- Upgrade to Ruby 3.3.12.
+  Resolves: RHEL-170929
+  Resolves: RHEL-193664
+
 * Thu Jun 11 2026 Jarek Prokop <jprokop@redhat.com> - 3.3.10-7
 - Fix DoS via crafted IMAP responses in net-imap. (CVE-2026-42245)
   Resolves: RHEL-181682
