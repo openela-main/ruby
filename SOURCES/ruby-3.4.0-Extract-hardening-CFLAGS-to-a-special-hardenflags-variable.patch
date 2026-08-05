@@ -171,7 +171,7 @@ index f35fad6a362611..0da15772d36671 100644
  AC_CACHE_CHECK([whether compiler has statement and declarations in expressions],
    rb_cv_have_stmt_and_decl_in_expr,
    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],[[ __extension__ ({ int a = 0; a; }); ]])],
-@@ -4213,12 +4270,13 @@ AS_IF([test "${ARCH_FLAG}"], [
+@@ -4211,12 +4268,13 @@ AS_IF([test "${ARCH_FLAG}"], [
  rb_cv_warnflags=`echo "$rb_cv_warnflags" | sed 's/^ *//;s/ *$//'`
  warnflags="$rb_cv_warnflags"
  AC_SUBST(cppflags)dnl
@@ -186,7 +186,7 @@ index f35fad6a362611..0da15772d36671 100644
  AC_SUBST(XCFLAGS)dnl
  AC_SUBST(XLDFLAGS)dnl
  AC_SUBST(EXTLDFLAGS)dnl
-@@ -4686,6 +4744,7 @@ config_summary "DLDFLAGS"            "$DLDFLAGS"
+@@ -4684,6 +4742,7 @@ config_summary "DLDFLAGS"            "$DLDFLAGS"
  config_summary "optflags"            "$optflags"
  config_summary "debugflags"          "$debugflags"
  config_summary "warnflags"           "$warnflags"
