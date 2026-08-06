@@ -12,9 +12,9 @@ diff --git a/common.mk b/common.mk
 index d55d1788aa..73755f6ccd 100644
 --- a/common.mk
 +++ b/common.mk
-@@ -1607,8 +1607,6 @@ yes-test-syntax-suggest: $(PREPARE_SYNTAX_SUGGEST)
- 	$(ACTIONS_ENDGROUP)
- no-test-syntax-suggest:
+@@ -1585,8 +1585,6 @@ test-bundled-gems-run: $(PREPARE_BUNDLED_GEMS)
+ 
+ test-syntax-suggest:
  
 -check: $(DOT_WAIT) $(PREPARE_SYNTAX_SUGGEST) test-syntax-suggest
 -
