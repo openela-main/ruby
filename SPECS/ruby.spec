@@ -21,7 +21,7 @@
 %endif
 
 
-%global release 115
+%global release 116
 
 %{!?release_string:%global release_string %{?development_release:0.}%{release}%{?development_release:.%{development_release}}%{?dist}}
 
@@ -287,6 +287,10 @@ Patch52: rubygem-net-imap-0.3.10-Fix-Information-disclosure-via-man-in-the-middl
 # https://github.com/ruby/net-imap/commit/92db350b24c388d2a2104f36cac9caa49a1044df
 # For details, see commit notes 3 equal signs `===` in the patch.
 Patch53: rubygem-net-imap-0.4.24-Fix-IMAP-Command-Injection-via-Symbol-Arguments-CVE-2026-42258.patch
+# Fix memory exhaustion via unknown DNS resource types in resolv. (CVE-2026-80212)
+# Backported from
+# https://github.com/ruby/resolv/commit/23f000967da6daed15bc93b5e6e6fe644bd82f2f
+Patch54: rubygem-resolv-0.3.2-Do-Not-Register-Unknown-DNS-Types-CVE-2026-80212.patch
 
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
@@ -711,6 +715,7 @@ sed -i 's/"evaluation\/incorrect_words.yaml"\.freeze, //' \
 %patch51 -p1
 %patch52 -p1
 %patch53 -p1
+%patch54 -p1
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -1275,6 +1280,11 @@ OPENSSL_SYSTEM_CIPHERS_OVERRIDE=xyz_nonexistent_file OPENSSL_CONF='' \
 %{gem_dir}/specifications/xmlrpc-%{xmlrpc_version}.gemspec
 
 %changelog
+* Mon Sep 07 2026 Jarek Prokop <jprokop@redhat.com> - 2.5.9-116
+- Fix memory exhaustion via unknown DNS resource types in resolv.
+  (CVE-2026-80212)
+  Resolves: RHEL-252850
+
 * Thu Jun 11 2026 Jarek Prokop <jprokop@redhat.com> - 2.5.9-115
 - Fix information disclosure via MITM attack bypassing TLS in net-imap.
   (CVE-2026-42246)
