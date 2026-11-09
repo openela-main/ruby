@@ -1,6 +1,6 @@
 %global major_version 4
 %global minor_version 0
-%global teeny_version 6
+%global teeny_version 9
 %global major_minor_version %{major_version}.%{minor_version}
 
 %global ruby_version %{major_minor_version}.%{teeny_version}
@@ -36,7 +36,7 @@
 ## BUNDLED_GEMS_VERSIONS
 
 # Bundled libraries versions
-%global rubygems_version 4.0.16
+%global rubygems_version 4.0.20
 %global rubygems_molinillo_version 0.8.0
 %global rubygems_net_http_version 0.7.0
 %global rubygems_net_protocol_version 0.2.2
@@ -48,7 +48,7 @@
 %global rubygems_uri_version 1.1.1
 
 # Default gems.
-%global bundler_version 4.0.16
+%global bundler_version 4.0.20
 %global bundler_connection_pool_version 2.5.4
 %global bundler_fileutils_version 1.8.0
 %global bundler_net_http_persistent_version 4.0.6
@@ -62,7 +62,7 @@
 %global did_you_mean_version 2.0.0
 %global digest_version 3.2.1
 %global english_version 0.8.1
-%global erb_version 6.0.1.1
+%global erb_version 6.0.7
 %global error_highlight_version 0.7.2
 %global etc_version 1.4.6
 %global fcntl_version 1.3.0
@@ -82,9 +82,9 @@
 %global optparse_version 0.8.1
 %global pp_version 0.6.3
 %global prettyprint_version 0.2.0
-%global prism_version 1.8.1
+%global prism_version 1.8.2
 %global psych_version 5.3.1
-%global resolv_version 0.7.0
+%global resolv_version 0.7.2
 %global ruby2_keywords_version 0.0.5
 %global securerandom_version 0.4.1
 %global shellwords_version 0.2.2
@@ -185,7 +185,7 @@
 Summary: An interpreter of object-oriented scripting language
 Name: ruby
 Version: %{ruby_version}%{?development_release}
-Release: 35%{?dist}
+Release: 36%{?dist}
 # Licenses, which are likely not included in binary RPMs:
 # Apache-2.0:
 #   benchmark/gc/redblack.rb
@@ -298,12 +298,11 @@ Patch9: rdoc-pr1531-fix-mutilple-document-installation.patch
 # in Ruby JSON
 # https://github.com/ruby/json/commit/393b41c3e5f87491e1e34fa59fa78ff6fa179a74
 Patch10: ruby-4.0.3-Fix-a-format-string-injection-vulnerability.patch
-# Fix memory exhaustion via unknown DNS resource types in resolv. (CVE-2026-80212)
+# Fix memory exhaustion via unknown DNS resource types in resolv,
+# Applied atop of the bundled rubygems v4.0.20. (CVE-2026-80212)
 # Backported from
 # https://github.com/ruby/resolv/commit/6393c628b224d0234ef915813c0977e11ebe57ea
-Patch11: rubygem-resolv-0.7.2-Do-Not-Register-Unknown-DNS-Types-CVE-2026-80212.patch
-# Same as Patch13, but applied atop of the bundled rubygems v4.0.16.
-Patch12: rubygems-resolv-0.7.2-Do-Not-Register-Unknown-DNS-Types-CVE-2026-80212.patch
+Patch11: rubygems-resolv-0.7.2-Do-Not-Register-Unknown-DNS-Types-CVE-2026-80212.patch
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 %{?with_rubypick:Suggests: rubypick}
@@ -821,7 +820,6 @@ popd
 %patch -P 8 -p1
 %patch -P 10 -p1
 %patch -P 11 -p1
-%patch -P 12 -p1
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -1972,6 +1970,16 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 
 
 %changelog
+* Thu Oct 29 2026 Tomas Juhasz <tjuhasz@redhat.com> - 4.0.9-36
+- Upgrade to Ruby 4.0.9.
+  Resolves: RHEL-260675
+- Fix: integer overflow issue in regular expression compiler  (CVE-2026-110264)
+  Resolves: RHEL-292088
+- Fix: integer overflow issue in CI/CD regular expression compiler (CVE-2026-97229)
+  Resolves: RHEL-292115
+- Fix: integer overflow issue in regular expression compiler  (CVE-2026-93577)
+  Resolves: RHEL-292142
+
 * Mon Sep 07 2026 Jarek Prokop <jprokop@redhat.com> - 4.0.6-35
 - Fix resolv: do not register on-demand classes for unknown DNS
   types and SvcParamKeys to prevent memory exhaustion
