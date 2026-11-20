@@ -1,0 +1,30 @@
+From 429000881aeba1c012711675a9339d229aff1c58 Mon Sep 17 00:00:00 2001
+From: Hiroshi SHIBATA <hsbt@ruby-lang.org>
+Date: Fri, 23 Oct 2026 10:22:03 +0900
+Subject: [PATCH] Keep the program size error from OP_END with subexp calls
+
+With a subexp call, the result of unset_addr_list_fix overwrote the error, so a pattern over the limit compiled without raising RegexpError.
+
+Follow-up to cf35145fc46.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+(cherry picked from commit 16d8a554b2ad279e08128b5e1dc4b342fccd33d7)
+---
+ regcomp.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/regcomp.c b/regcomp.c
+index 42f2247665..79f0400a28 100644
+--- a/regcomp.c
++++ b/regcomp.c
+@@ -5888,6 +5888,7 @@ onig_compile(regex_t* reg, const UChar* pattern, const UChar* pattern_end,
+   r = compile_tree(root, reg);
+   if (r == 0) {
+     r = add_opcode(reg, OP_END);
++    if (r != 0) goto err_unset;
+ #ifdef USE_SUBEXP_CALL
+     if (scan_env.num_call > 0) {
+       r = unset_addr_list_fix(&uslist, reg);
+-- 
+2.56.0
+
