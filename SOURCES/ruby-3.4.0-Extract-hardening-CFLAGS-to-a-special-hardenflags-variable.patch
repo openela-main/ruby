@@ -207,7 +207,7 @@ index 5251ab214df1f0..54611a247e2f66 100644
  #define TOKEN_PASTE(x,y) x##y
  #define PREFIXED_SYMBOL(prefix,name) TOKEN_PASTE(prefix,name)
  
-@@ -27,10 +29,10 @@
+@@ -34,10 +36,10 @@
  .global PREFIXED_SYMBOL(SYMBOL_PREFIX,coroutine_transfer)
  PREFIXED_SYMBOL(SYMBOL_PREFIX,coroutine_transfer):
  
@@ -220,16 +220,16 @@ index 5251ab214df1f0..54611a247e2f66 100644
  	# For the the case PAC is not enabled but BTI is.
  	# bti c
  	hint #34
-@@ -73,7 +75,7 @@ PREFIXED_SYMBOL(SYMBOL_PREFIX,coroutine_transfer):
+@@ -108,7 +110,7 @@ PREFIXED_SYMBOL(SYMBOL_PREFIX,coroutine_transfer):
  	# Pop stack frame
- 	add sp, sp, 0xa0
+ 	add sp, sp, 0xa0 + TEB_OFFSET
  
 -#if defined(__ARM_FEATURE_PAC_DEFAULT) && (__ARM_FEATURE_PAC_DEFAULT != 0)
 +#if defined(RUBY_AARCH64_PAC_ENABLED)
  	# autiasp: Authenticate x30 (LR) with SP and key A
  	hint #29
  #endif
-@@ -85,18 +87,18 @@ PREFIXED_SYMBOL(SYMBOL_PREFIX,coroutine_transfer):
+@@ -120,18 +122,18 @@ PREFIXED_SYMBOL(SYMBOL_PREFIX,coroutine_transfer):
  .section .note.GNU-stack,"",%progbits
  #endif
  

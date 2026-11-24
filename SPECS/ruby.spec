@@ -1,6 +1,6 @@
 %global major_version 3
 %global minor_version 3
-%global teeny_version 13
+%global teeny_version 14
 %global major_minor_version %{major_version}.%{minor_version}
 
 %global ruby_version %{major_minor_version}.%{teeny_version}
@@ -173,7 +173,7 @@
 Summary: An interpreter of object-oriented scripting language
 Name: ruby
 Version: %{ruby_version}%{?development_release}
-Release: 16%{?dist}
+Release: 17%{?dist}
 # Licenses, which are likely not included in binary RPMs:
 # Apache-2.0:
 #   benchmark/gc/redblack.rb
@@ -1791,40 +1791,46 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 
 
 %changelog
+* Fri Nov 20 2026 Tomas Juhasz <tjuhasz@redhat.com> - 3.3.14-17
+- Rebase to Ruby 3.3.14.
+  Resolves: RHEL-312525
+- Fix Heap buffer overflow in case conversion of strings (CVE-2026-132825).
+  Resolves: RHEL-312284
+
 * Thu Oct 29 2026 Tomas Juhasz <tjuhasz@redhat.com> - 3.3.13-16
 - Rebase to Ruby 3.3.13.
-  Resolves: RHEL-300972
+  Resolves: RHEL-290965
 - Fix: integer overflow issue in regular expression compiler (CVE-2026-110264)
-  Resolves: RHEL-292066
+  Resolves: RHEL-292064
 - Fix: integer overflow issue in CI/CD regular expression compiler (CVE-2026-97229)
-  Resolves: RHEL-292091
+  Resolves: RHEL-292092
 - Fix: integer overflow issue in regular expression compiler (CVE-2026-93577)
-  Resolves: RHEL-292120
+  Resolves: RHEL-292121
 - Fix: double free issue in regular expression parser (CVE-2026-89078)
-  Resolves: RHEL-292184
+  Resolves: RHEL-292182
 
 * Tue Sep 01 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 3.3.12-15
 - Fix memory exhaustion via unknown DNS resource types in resolv.
   (CVE-2026-80212)
-  Resolves: RHEL-252031
+  Resolves: RHEL-252026
 
 * Thu Jul 23 2026 Jarek Prokop <jprokop@redhat.com> - 3.3.12-14
 - Upgrade to Ruby 3.3.12.
-  Resolves: RHEL-211300
-  Resolves: RHEL-193659
+  Resolves: RHEL-170927
+  Resolves: RHEL-193668
 
 * Thu Jun 11 2026 Jarek Prokop <jprokop@redhat.com> - 3.3.10-13
 - Fix DoS via crafted IMAP responses in net-imap. (CVE-2026-42245)
-  Resolves: RHEL-181687
+  Resolves: RHEL-181681
 - Fix information disclosure via MITM attack bypassing TLS in net-imap.
   (CVE-2026-42246)
-  Resolves: RHEL-181775
+  Resolves: RHEL-181769
 - Fix command injection via Symbol arguments in net-imap. (CVE-2026-42258)
-  Resolves: RHEL-181797
+  Resolves: RHEL-181799
 
 * Tue Apr 28 2026 Jarek Prokop <jprokop@redhat.com> - 3.3.10-12
 - Fix arbitrary code execution via deserialization bypass in ERB. (CVE-2026-41316)
-  Resolves: RHEL-171245
+  Resolves: RHEL-171246
 
 * Thu Nov 13 2025 Jun Aruga <jaruga@redhat.com> - 3.3.10-11
 - Upgrade to Ruby 3.3.10.
