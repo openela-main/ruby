@@ -12,7 +12,7 @@ diff --git a/common.mk b/common.mk
 index dae7d9dc00..111e859d1b 100644
 --- a/common.mk
 +++ b/common.mk
-@@ -1619,8 +1619,6 @@ no-test-bundled-gems-spec:
+@@ -1620,8 +1620,6 @@ no-test-bundled-gems-spec:
  
  test-syntax-suggest:
  

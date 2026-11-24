@@ -156,7 +156,7 @@ diff --git a/tool/rbinstall.rb b/tool/rbinstall.rb
 index 874c3ef1d9..a9e6365b27 100755
 --- a/tool/rbinstall.rb
 +++ b/tool/rbinstall.rb
-@@ -1053,7 +1053,7 @@ def (bins = []).add(name)
+@@ -1061,7 +1061,7 @@ def (bins = []).add(name)
  
  install?(:doc, :rdoc) do
    if $rdocdir

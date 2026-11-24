@@ -44,7 +44,7 @@ diff --git a/common.mk b/common.mk
 index 08fee9119a..dae7d9dc00 100644
 --- a/common.mk
 +++ b/common.mk
-@@ -116,6 +116,7 @@ PRISM_FILES = prism/api_node.$(OBJEXT) \
+@@ -117,6 +117,7 @@ PRISM_FILES = prism/api_node.$(OBJEXT) \
  		prism_init.$(OBJEXT)
  
  COMMONOBJS    = \

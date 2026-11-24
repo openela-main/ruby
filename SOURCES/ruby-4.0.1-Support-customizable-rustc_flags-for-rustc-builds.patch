@@ -19,7 +19,7 @@ diff --git a/common.mk b/common.mk
 index 08fee9119a..9ac5ae919f 100644
 --- a/common.mk
 +++ b/common.mk
-@@ -270,21 +270,15 @@ MAKE_LINK = $(MINIRUBY) -rfileutils -e "include FileUtils::Verbose" \
+@@ -271,21 +271,15 @@ MAKE_LINK = $(MINIRUBY) -rfileutils -e "include FileUtils::Verbose" \
  # For release builds
  YJIT_RUSTC_ARGS = --crate-name=yjit \
  	$(JIT_RUST_FLAGS) \

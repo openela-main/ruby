@@ -1,6 +1,6 @@
 %global major_version 4
 %global minor_version 0
-%global teeny_version 9
+%global teeny_version 10
 %global major_minor_version %{major_version}.%{minor_version}
 
 %global ruby_version %{major_minor_version}.%{teeny_version}
@@ -73,7 +73,7 @@
 %global io_nonblock_version 0.3.2
 %global io_wait_version 0.4.0
 %global ipaddr_version 1.2.8
-%global json_version 2.18.0
+%global json_version 2.18.3
 %global net_http_version 0.9.1
 %global net_protocol_version 0.2.2
 %global open_uri_version 0.5.0
@@ -185,7 +185,7 @@
 Summary: An interpreter of object-oriented scripting language
 Name: ruby
 Version: %{ruby_version}%{?development_release}
-Release: 36%{?dist}
+Release: 37%{?dist}
 # Licenses, which are likely not included in binary RPMs:
 # Apache-2.0:
 #   benchmark/gc/redblack.rb
@@ -292,17 +292,11 @@ Patch8: ruby-4.0.1-Support-customizable-rustc_flags-for-rustc-builds.patch
 # https://github.com/ruby/rdoc/pull/1531
 # Fix error with `gem install --document=rdoc,ri`
 Patch9: rdoc-pr1531-fix-mutilple-document-installation.patch
-# CVE-2026-33210 
-# Fix for Denial of Service or Information Disclosure 
-# via format string injection
-# in Ruby JSON
-# https://github.com/ruby/json/commit/393b41c3e5f87491e1e34fa59fa78ff6fa179a74
-Patch10: ruby-4.0.3-Fix-a-format-string-injection-vulnerability.patch
 # Fix memory exhaustion via unknown DNS resource types in resolv,
 # Applied atop of the bundled rubygems v4.0.20. (CVE-2026-80212)
 # Backported from
 # https://github.com/ruby/resolv/commit/6393c628b224d0234ef915813c0977e11ebe57ea
-Patch11: rubygems-resolv-0.7.2-Do-Not-Register-Unknown-DNS-Types-CVE-2026-80212.patch
+Patch10: rubygems-resolv-0.7.2-Do-Not-Register-Unknown-DNS-Types-CVE-2026-80212.patch
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 %{?with_rubypick:Suggests: rubypick}
@@ -819,7 +813,6 @@ popd
 %patch -P 7 -p1
 %patch -P 8 -p1
 %patch -P 10 -p1
-%patch -P 11 -p1
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -1970,44 +1963,50 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 
 
 %changelog
+* Fri Nov 20 2026 Tomas Juhasz <tjuhasz@redhat.com> - 4.0.10-37
+- Rebase to Ruby 4.0.10.
+  Resolves: RHEL-312600
+- Fix Heap buffer overflow in case conversion of strings (CVE-2026-132825).
+  Resolves: RHEL-312280
+
 * Thu Oct 29 2026 Tomas Juhasz <tjuhasz@redhat.com> - 4.0.9-36
 - Upgrade to Ruby 4.0.9.
-  Resolves: RHEL-260675
+  Resolves: RHEL-313265
 - Fix: integer overflow issue in regular expression compiler  (CVE-2026-110264)
-  Resolves: RHEL-292088
+  Resolves: RHEL-292083
 - Fix: integer overflow issue in CI/CD regular expression compiler (CVE-2026-97229)
-  Resolves: RHEL-292115
+  Resolves: RHEL-292116
 - Fix: integer overflow issue in regular expression compiler  (CVE-2026-93577)
-  Resolves: RHEL-292142
+  Resolves: RHEL-292144
 
 * Mon Sep 07 2026 Jarek Prokop <jprokop@redhat.com> - 4.0.6-35
 - Fix resolv: do not register on-demand classes for unknown DNS
   types and SvcParamKeys to prevent memory exhaustion
   (CVE-2026-80212)
-  Resolves: RHEL-252035
+  Resolves: RHEL-252034
 
 * Thu Jul 23 2026 Jarek Prokop <jprokop@redhat.com> - 4.0.6-34
 - Upgrade to Ruby 4.0.6.
-  Resolves: RHEL-211301
-  Resolves: RHEL-193663
+  Resolves: RHEL-208837
+  Resolves: RHEL-193669
 
 * Wed Jun 10 2026 Tomas Juhasz <tjuhasz@redhat.com> - 4.0.3-33
 - Fix Net::IMAP ResponseReader quadratic complexity vulnerability. (CVE-2026-42245)
-  Resolves: RHEL-181690
+  Resolves: RHEL-181683
 - Fix Net::IMAP STARTTLS stripping vulnerability. (CVE-2026-42246)
-  Resolves: RHEL-181771
+  Resolves: RHEL-181776
 - Fix Net::IMAP command injection vulnerability via unvalidated Symbol arguments. (CVE-2026-42258)
-  Resolves: RHEL-181803
+  Resolves: RHEL-181807
 
 * Wed Apr 29 2026 Tomas Juhasz <tjuhasz@redhat.com> - 4.0.3-32
 - Upgrade to Ruby 4.0.3.
-  Resolves: RHEL-171933
+  Resolves: RHEL-170932
 - Fix ERB: Arbitrary code execution via deserialization bypass
  (CVE-2026-41316)
-  Resolves: RHEL-171258
+  Resolves: RHEL-171261
 - Fix JSON: Denial of Service or Information Disclosure via format string injection
  (CVE-2026-33210)
- Resolves: RHEL-173458
+ Resolves: RHEL-169965
 
 * Thu Jan 15 2026 Jarek Prokop <jprokop@redhat.com> - 4.0.1-31
 - Upgrade to Ruby 4.0.1.

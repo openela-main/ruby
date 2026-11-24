@@ -75,7 +75,7 @@ index a9e6365b27..7117e65e82 100755
  mandir = CONFIG["mandir", true]
  docdir = CONFIG["docdir", true]
  enable_shared = CONFIG["ENABLE_SHARED"] == 'yes'
-@@ -1082,7 +1083,16 @@ def (bins = []).add(name)
+@@ -1090,7 +1091,16 @@ def (bins = []).add(name)
  install?(:local, :comm, :lib) do
    prepare "library scripts", rubylibdir
    noinst = %w[*.txt *.rdoc *.gemspec]
