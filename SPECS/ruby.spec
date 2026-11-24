@@ -21,7 +21,7 @@
 %endif
 
 
-%global release 116
+%global release 118
 
 %{!?release_string:%global release_string %{?development_release:0.}%{release}%{?development_release:.%{development_release}}%{?dist}}
 
@@ -291,6 +291,30 @@ Patch53: rubygem-net-imap-0.4.24-Fix-IMAP-Command-Injection-via-Symbol-Arguments
 # Backported from
 # https://github.com/ruby/resolv/commit/23f000967da6daed15bc93b5e6e6fe644bd82f2f
 Patch54: rubygem-resolv-0.3.2-Do-Not-Register-Unknown-DNS-Types-CVE-2026-80212.patch
+# CVE-2026-89078: Prevent double free for too big repetition quantifiers.
+# https://github.com/ruby/ruby/pull/13332
+# https://github.com/ruby/ruby/commit/63d0ba80a7d7fd348423fa450a3d766091d1f3a8
+Patch55: ruby-3.3.13-regexp-prevent-double-free.patch
+# CVE-2026-110264: Reject overflowed repeat/null-check IDs in huge regexps.
+# https://github.com/ruby/ruby/pull/16801
+# https://github.com/ruby/ruby/commit/63eda2681e24cdf9fbe45fdd8a3d8866f4f59878
+Patch56: ruby-3.3.13-regexp-reject-overflowed-repeat-null-check.patch
+# CVE-2026-93577, CVE-2026-97229: Avoid overflow in the regexp compiler's
+# program size arithmetic.
+# https://github.com/ruby/ruby/pull/19020
+# https://github.com/ruby/ruby/commit/fa98ef030a54595d4387998b2fb48a412fc5c63c
+# https://github.com/ruby/ruby/commit/b03e500193371ae87dc4536d855008b42a9cd1a7
+Patch57: ruby-3.3.13-regexp-avoid-overflow-compiled-program.patch
+# Fix memory leak on compile error in a later branch of an alternation, found
+# via CVE-2026-89078 PR #13332.
+# https://github.com/ruby/ruby/pull/19026
+# https://github.com/ruby/ruby/commit/745e06b1b0e6ec2af5ecb4bc0ee0de5e8d641207
+Patch58: ruby-3.3.13-regexp-prevent-double-free-memory-leak.patch
+# Keep the program size error from OP_END with subexp calls. Fix a bug found via
+# CVE-2026-93577, CVE-2026-97229 PR #19020.
+# https://github.com/ruby/ruby/pull/19495
+# https://github.com/ruby/ruby/commit/f6496bca68ca445bcc1ced04818bfa4220b2bc7f
+Patch59: ruby-3.3.13-regexp-avoid-overflow-compiled-program-keep-size-error.patch
 
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
@@ -716,6 +740,11 @@ sed -i 's/"evaluation\/incorrect_words.yaml"\.freeze, //' \
 %patch52 -p1
 %patch53 -p1
 %patch54 -p1
+%patch55 -p1
+%patch56 -p1
+%patch57 -p1
+%patch58 -p1
+%patch59 -p1
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -1280,6 +1309,20 @@ OPENSSL_SYSTEM_CIPHERS_OVERRIDE=xyz_nonexistent_file OPENSSL_CONF='' \
 %{gem_dir}/specifications/xmlrpc-%{xmlrpc_version}.gemspec
 
 %changelog
+* Mon Nov 02 2026 Jun Aruga <jaruga@redhat.com> - 2.5.9-118
+- Fix memory leak on compile error in a later branch of an alternation, found
+  via CVE-2026-89078 PR #13332.
+- Keep the program size error from OP_END with subexp calls. Fix a bug found via
+  CVE-2026-93577, CVE-2026-97229 PR #19020.
+
+* Fri Oct 30 2026 Jun Aruga <jaruga@redhat.com> - 2.5.9-117
+- CVE-2026-89078: Prevent double free for too big repetition quantifiers.
+  (RHEL-292185)
+- CVE-2026-110264: Reject overflowed repeat/null-check IDs in huge regexps.
+  (RHEL-292068)
+- CVE-2026-93577, CVE-2026-97229: Avoid overflow in the regexp compiler's
+  program size arithmetic. (RHEL-292128, RHEL-292093)
+
 * Mon Sep 07 2026 Jarek Prokop <jprokop@redhat.com> - 2.5.9-116
 - Fix memory exhaustion via unknown DNS resource types in resolv.
   (CVE-2026-80212)
