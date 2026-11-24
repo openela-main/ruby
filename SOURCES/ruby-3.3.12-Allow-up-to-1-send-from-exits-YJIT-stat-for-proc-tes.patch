@@ -21,7 +21,7 @@ diff --git a/test/ruby/test_yjit.rb b/test/ruby/test_yjit.rb
 index 0d40d38872..df1b41aa16 100644
 --- a/test/ruby/test_yjit.rb
 +++ b/test/ruby/test_yjit.rb
-@@ -1528,7 +1528,7 @@ def test_disable_stats
+@@ -1534,7 +1534,7 @@ class TestYJIT < Test::Unit::TestCase
  
    def test_proc_block_with_kwrest
      # When the bug was present this required --yjit-stats to trigger.

@@ -1,6 +1,6 @@
 %global major_version 3
 %global minor_version 3
-%global teeny_version 12
+%global teeny_version 14
 %global major_minor_version %{major_version}.%{minor_version}
 
 %global ruby_version %{major_minor_version}.%{teeny_version}
@@ -89,7 +89,7 @@
 %global pstore_version 0.2.1
 %global readline_version 0.0.4
 %global reline_version 0.5.10
-%global resolv_version 0.3.1
+%global resolv_version 0.3.2
 %global resolv_replace_version 0.1.1
 %global rinda_version 0.2.0
 %global ruby2_keywords_version 0.0.5
@@ -169,7 +169,7 @@
 Summary: An interpreter of object-oriented scripting language
 Name: ruby
 Version: %{ruby_version}%{?development_release}
-Release: 9%{?dist}
+Release: 10%{?dist}
 # Licenses, which are likely not included in binary RPMs:
 # Apache-2.0:
 #   benchmark/gc/redblack.rb
@@ -282,12 +282,11 @@ Patch12: ruby-3.4.0-Extract-hardening-CFLAGS-to-a-special-hardenflags-variable.p
 # Cannot reproduce sufficiently so far for the issue to appear outside that environment.
 # See patch's commit message for more information.
 Patch13: ruby-3.3.12-Allow-up-to-1-send-from-exits-YJIT-stat-for-proc-tes.patch
-# Fix memory exhaustion via unknown DNS resource types in resolv. (CVE-2026-80212)
+# Fix memory exhaustion via unknown DNS resource types in resolv,
+# applied atop of the bundled rubygems v3.5.22. (CVE-2026-80212)
 # Backported from
 # https://github.com/ruby/resolv/commit/23f000967da6daed15bc93b5e6e6fe644bd82f2f
-Patch14: rubygem-resolv-0.3.2-Do-Not-Register-Unknown-DNS-Types-CVE-2026-80212.patch
-# Same as Patch18, but applied atop of the bundled rubygems v3.5.22.
-Patch15: rubygems-resolv-0.4.0-Do-Not-Register-Unknown-DNS-Types-CVE-2026-80212.patch
+Patch14: rubygems-resolv-0.4.0-Do-Not-Register-Unknown-DNS-Types-CVE-2026-80212.patch
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 %{?with_rubypick:Suggests: rubypick}
@@ -765,7 +764,6 @@ analysis result in RBS format, a standard type description format for Ruby
 %patch -P 12 -p1
 %patch -P 13 -p1
 %patch -P 14 -p1
-%patch -P 15 -p1
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -1781,6 +1779,20 @@ make -C %{_vpath_builddir} runruby TESTRUN_SCRIPT=" \
 
 
 %changelog
+* Fri Nov 20 2026 Tomas Juhasz <tjuhasz@redhat.com> - 3.3.14-10
+- Rebase to Ruby 3.3.14.
+  Resolves: RHEL-290988
+- Fix integer overflow issue in regular expression compiler (CVE-2026-110264).
+  Resolves: RHEL-292074
+- Fix integer overflow issue in CI/CD regular expression compiler (CVE-2026-97229).
+  Resolves: RHEL-292102
+- Fix integer overflow issue in regular expression compiler (CVE-2026-93577).
+  Resolves: RHEL-292124
+- Fix double free issue in regular expression parser (CVE-2026-89078).
+  Resolves: RHEL-292190
+- Fix Heap buffer overflow in case conversion of strings (CVE-2026-132825).
+  Resolves: RHEL-312273
+
 * Mon Sep 07 2026 Jarek Prokop <jprokop@redhat.com> - 3.3.12-9
 - Fix memory exhaustion via unknown DNS resource types in resolv.
   (CVE-2026-80212)
