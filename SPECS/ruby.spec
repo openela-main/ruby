@@ -21,7 +21,7 @@
 %endif
 
 
-%global release 118
+%global release 119
 
 %{!?release_string:%global release_string %{?development_release:0.}%{release}%{?development_release:.%{development_release}}%{?dist}}
 
@@ -315,6 +315,9 @@ Patch58: ruby-3.3.13-regexp-prevent-double-free-memory-leak.patch
 # https://github.com/ruby/ruby/pull/19495
 # https://github.com/ruby/ruby/commit/f6496bca68ca445bcc1ced04818bfa4220b2bc7f
 Patch59: ruby-3.3.13-regexp-avoid-overflow-compiled-program-keep-size-error.patch
+# Fix Heap buffer overflow in case conversion of strings (CVE-2026-132825)
+# https://github.com/ruby/ruby/commit/d8d4c02fff5a3f6418ed3c331b0fe116727b8eac
+Patch60: ruby-3.3.14-Fix-a-heap-buffer-overflow-in-case-mapping-of-the-sh.patch
 
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
@@ -745,6 +748,7 @@ sed -i 's/"evaluation\/incorrect_words.yaml"\.freeze, //' \
 %patch57 -p1
 %patch58 -p1
 %patch59 -p1
+%patch60 -p1
 
 # Provide an example of usage of the tapset:
 cp -a %{SOURCE3} .
@@ -1309,6 +1313,10 @@ OPENSSL_SYSTEM_CIPHERS_OVERRIDE=xyz_nonexistent_file OPENSSL_CONF='' \
 %{gem_dir}/specifications/xmlrpc-%{xmlrpc_version}.gemspec
 
 %changelog
+* Fri Nov 20 2026 Jarek Prokop <jprokop@redhat.com> - 2.5.9-119
+- Fix Heap buffer overflow in case conversion of strings (CVE-2026-132825)
+  Resolves: RHEL-312272
+
 * Mon Nov 02 2026 Jun Aruga <jaruga@redhat.com> - 2.5.9-118
 - Fix memory leak on compile error in a later branch of an alternation, found
   via CVE-2026-89078 PR #13332.
